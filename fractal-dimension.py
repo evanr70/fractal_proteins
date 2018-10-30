@@ -5,22 +5,26 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import random
 import itertools
+import time
 
 
-def colorGraph(inputGraph):
+# ---------------------------------------------------------------------------------------------------------
+# These sets of functions are used to implement the Greedy Colouring algorithm to count the number of boxes
+# required by each length
+def colourGraph(inputGraph):
     subGraphs = list(nx.connected_component_subgraphs(inputGraph))
-    totalBoxes = colorSubGraph(subGraphs[0])
+    totalBoxes = colourSubGraph(subGraphs[0])
     for x in range(1, len(subGraphs)):
-        totalBoxes = addVectors(totalBoxes, colorSubGraph(subGraphs[x]))
+        totalBoxes = addVectors(totalBoxes, colourSubGraph(subGraphs[x]))
     return calculateFractalDimension(np.log(totalBoxes), len(totalBoxes))
 
 
-def colorSubGraph(inputSubGraph):
+def colourSubGraph(inputSubGraph):
     nodeNames = list(nx.nodes(inputSubGraph))
     lMax = nx.diameter(inputSubGraph) + 1
     numberOfNodes = nx.number_of_nodes(inputSubGraph)
-    color = np.arange(1, numberOfNodes*lMax + 1).reshape(numberOfNodes, lMax)
-    coloredMatrix = np.zeros((numberOfNodes, lMax))
+    colour = np.arange(1, numberOfNodes*lMax + 1).reshape(numberOfNodes, lMax)
+    colouredMatrix = np.zeros((numberOfNodes, lMax))
     if(numberOfNodes < 8):
         iterations = math.factorial(numberOfNodes)
     else:
@@ -31,11 +35,11 @@ def colorSubGraph(inputSubGraph):
                 pathLength = len(nx.bidirectional_shortest_path(inputSubGraph, source=nodeNames[j], target=nodeNames[i])) - 1
                 for lCurrent in range(lMax):
                     if(pathLength > lCurrent):
-                        coloredMatrix[i][lCurrent] = color[j][pathLength - 1]
+                        colouredMatrix[i][lCurrent] = colour[j][pathLength - 1]
 
         currentBoxNumbers = np.zeros(lMax)
         for i in range(lMax):
-            currentBoxNumbers[i] = (len(set(coloredMatrix[:, i])))
+            currentBoxNumbers[i] = (len(set(colouredMatrix[:, i])))
 
         if(k < 1):
             boxNumbers = currentBoxNumbers
@@ -48,7 +52,8 @@ def colorSubGraph(inputSubGraph):
             random.shuffle(nodeNames)
     return boxNumbers
 
-
+#-----------------------------------------------------------------------------------------------------
+# These are the set of functions which implement the Compact Box Burning algorithm.
 def compactBoxBurnig(inputGraph):
     subGraphs = list(nx.connected_component_subgraphs(inputGraph))
     maxLength = nx.diameter(subGraphs[0])
@@ -91,11 +96,7 @@ def countBoxesOfLength(inputSubGraph, length, maxLength):
 
 
 def evaluatedCandidateSet(evaluationNodes, candiateSet, subGraph, length):
-    newCandidateSet = []
-    for x in candiateSet:
-        if(inUnion(evaluationNodes, x, subGraph, length)):
-            newCandidateSet.append(x)
-    return np.array(newCandidateSet)
+    return np.array([x for x in candiateSet if inUnion(evaluationNodes, x, subGraph, length)])
 
 
 def inUnion(evaluationNodes, targetNode, subGraph, length):
@@ -106,12 +107,13 @@ def inUnion(evaluationNodes, targetNode, subGraph, length):
 
 
 def removeElementsFromArray(firstArray, secondArray):
-    for x in secondArray:
-        if x in firstArray:
-            firstArray = np.delete(firstArray, np.where(firstArray == x))
-    return firstArray
+    secondSet = set(secondArray)
+    firstSet = set(firstArray)
+    return np.array(list(firstSet.difference(secondSet)))
 
 
+#------------------------------------------------------------------------------------------------------------
+# This is the set of functions which are required by both algorithms.
 def calculateFractalDimension(lnBoxNumber, maxLength):
     lnBoxLength = np.log(np.arange(1, maxLength + 1))
     gradient = stats.spearmanr(np.log(np.arange(1, maxLength + 1)), lnBoxNumber)[0] * (np.std(lnBoxNumber) / np.std(lnBoxLength))
@@ -128,6 +130,25 @@ def addVectors(vec1, vec2):
         return np.add(vec1, vec2)
 
 
+#------------------------------------------------------------------------------------------------------------
+# These functions measure the time taken for a given algorithm to run.
+def testAlgorithm(func, numberOfIter, numberOfNodes):
+    returnTimes = np.array(testAlgorithmNNodes(func, numberOfIter, 2))
+    for i in range(3, numberOfNodes + 1):
+        returnTimes = np.append(returnTimes, testAlgorithmNNodes(func, numberOfIter, i))
+    return returnTimes
+
+
+def testAlgorithmNNodes(func, numberOfIter, numberOfNodes):
+    totalTime = 0
+    for i in range(numberOfIter):
+        G = nx.fast_gnp_random_graph(numberOfNodes, 0.5)
+        currentTime = time.time()
+        func(G)
+        totalTime += (time.time() -  currentTime)
+    return totalTime/numberOfIter
+
+
 if __name__ == "__main__":
     #G = nx.Graph()
     #G.add_nodes_from(["a", "b", "c", "d", "e"])
@@ -139,7 +160,7 @@ if __name__ == "__main__":
     #plt.subplot(121)
     #nx.draw(G, with_labels=True, font_weight='bold')
     #plt.show()
-    #print(colorGraph(G))
+    #print(colourGraph(G))
     #print(countBoxesOfLength(G, 2, nx.diameter(G)))
     #print(compactBoxBurnig(G))
 
@@ -156,6 +177,21 @@ if __name__ == "__main__":
     nx.draw(H, with_labels=True, font_weight='bold')
     plt.show()
     print(compactBoxBurnig(H))
+    nodeNumber = 16
+    iterNumber = 20
+    # greedyAlTimes = testAlgorithm(colourGraph, iterNumber, nodeNumber)
+    # burningAlTimes = testAlgorithm(compactBoxBurnig, iterNumber, nodeNumber)
+    # plt.plot(np.arange(2, nodeNumber + 1), greedyAlTimes)
+    # plt.xlabel("Number Of Nodes")
+    # plt.ylabel("Time Taken (s)")
+    # plt.title("Measurements for Greedy Colouring Algorithm")
+    # plt.show()
+    #
+    # plt.plot(np.arange(2, nodeNumber + 1), burningAlTimes)
+    # plt.xlabel("Number Of Nodes")
+    # plt.ylabel("Time Taken (s)")
+    # plt.title("Measurements for Compact Box Burning Algorithm")
+    # plt.show()
 
     #J = nx.Graph()
     #J.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -174,4 +210,4 @@ if __name__ == "__main__":
     #plt.subplot(121)
     #nx.draw(J, with_labels=True, font_weight='bold')
     #plt.show()
-    #print(colorSubGraph(J))
+    #print(colourSubGraph(J))
