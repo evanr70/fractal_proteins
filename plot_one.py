@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import os
 import time
 
-file_list = ['data/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt']
+# file_list = ['data/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt']
+file_list = ['data/BIOGRID-ORGANISM-Human_papillomavirus_16-3.5.165.tab2.txt']
 
 for file_name in file_list:
 
@@ -28,7 +29,7 @@ for file_name in file_list:
     end_time = time.time()
 
     plt.subplot(111)
-    nx.draw(G, with_labels=False, font_weight='bold')
+    nx.draw(G, with_labels=True, font_weight='bold')
 
     plt.show()
 
