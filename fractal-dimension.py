@@ -13,22 +13,21 @@ import time
 # required by each length
 def colour_graph(input_graph):
     sub_graphs = list(nx.connected_component_subgraphs(input_graph))
-    total_boxes = colour_sub_graph(sub_graphs[0])
+    total_boxes = []
+
     for x in range(1, len(sub_graphs)):
-        total_boxes = add_vectors(total_boxes, colour_sub_graph(sub_graphs[x]))
+        total_boxes = [x+y for x, y in itertools.zip_longest(total_boxes, colour_sub_graph(sub_graphs[x]), fillvalue=1)]
     return calculate_fractal_dimension(np.log(total_boxes), len(total_boxes))
 
 
 def colour_sub_graph(input_sub_graph):
-    node_names = list(nx.nodes(input_sub_graph))
-    l_max = nx.diameter(input_sub_graph) + 1
-    number_of_nodes = nx.number_of_nodes(input_sub_graph)
+    node_names = list(input_sub_graph.nodes())
+    l_max = input_sub_graph.diameter() + 1
+    number_of_nodes = input_sub_graph.number_of_nodes()
     colour = np.arange(1, number_of_nodes * l_max + 1).reshape(number_of_nodes, l_max)
-    coloured_matrix = np.zeros((number_of_nodes, l_max))
-    if number_of_nodes < 8:
-        iterations = math.factorial(number_of_nodes)
-    else:
-        iterations = 10000
+    coloured_matrix = np.zeros_like(colour)
+
+    iterations = min(np.math.factorial(number_of_nodes), 10000)
     for k in range(iterations):
         for i in range(1, number_of_nodes):
             for j in range(i):
