@@ -7,6 +7,8 @@ import random
 import itertools
 import time
 
+import graph_magic
+
 
 # ---------------------------------------------------------------------------------------------------------
 # These sets of functions are used to implement the Greedy Colouring algorithm to count the number of boxes
@@ -166,17 +168,22 @@ if __name__ == "__main__":
     # print(countBoxesOfLength(G, 2, nx.diameter(G)))
     # print(compactBoxBurnig(G))
 
-    H = nx.Graph()
-    H.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    H.add_edge(1, 2)
-    H.add_edge(2, 3)
-    H.add_edge(3, 4)
-    H.add_edge(4, 5)
-    H.add_edge(3, 5)
-    H.add_edge(6, 7)
-    H.add_edge(8, 9)
+    # H = nx.Graph()
+    # H.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    # H.add_edge(1, 2)
+    # H.add_edge(2, 3)
+    # H.add_edge(3, 4)
+    # H.add_edge(4, 5)
+    # H.add_edge(3, 5)
+    # H.add_edge(6, 7)
+    # H.add_edge(8, 9)
+
+    # H = nx.barabasi_albert_graph(1000, 700)
+
+    H = graph_magic.get_graph_from_file("data/BIOGRID-ORGANISM-Xenopus_laevis-3.5.165.tab2.txt")
+
     plt.subplot(121)
-    nx.draw(H, with_labels=True, font_weight='bold')
+    nx.draw(H, with_labels=False, font_weight='bold')
     plt.show()
     print(compact_box_burning(H))
     node_number = 16

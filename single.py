@@ -8,8 +8,9 @@ import time
 
 # file_list = ['data/BIOGRID-ORGANISM-Homo_sapiens-3.5.165.tab2.txt']
 # file_list = ['data/BIOGRID-ORGANISM-Rattus_norvegicus-3.5.165.tab2.txt']
-file_list = ['data/BIOGRID-ORGANISM-Human_papillomavirus_16-3.5.165.tab2.txt']
+# file_list = ['data/BIOGRID-ORGANISM-Human_papillomavirus_16-3.5.165.tab2.txt']
 # file_list = ['data/BIOGRID-ORGANISM-Caenorhabditis_elegans-3.5.165.tab2.txt']
+file_list = ['data/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt']
 
 stats = []
 
