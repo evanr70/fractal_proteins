@@ -6,7 +6,8 @@ import os
 import time
 
 # file_list = ['data/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt']
-file_list = ['data/BIOGRID-ORGANISM-Human_papillomavirus_16-3.5.165.tab2.txt']
+# file_list = ['data/BIOGRID-ORGANISM-Human_papillomavirus_16-3.5.165.tab2.txt']
+file_list = ['data/BIOGRID-ORGANISM-Human_Herpesvirus_6B-3.5.165.tab2.txt']
 
 for file_name in file_list:
 

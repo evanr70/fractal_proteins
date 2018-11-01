@@ -73,7 +73,10 @@ if __name__ == "__main__":
 
     # file_list = glob.glob('data/*.txt')
     # file_list = ['data/BIOGRID-ORGANISM-Human_papillomavirus_16-3.5.165.tab2.txt']
-    file_list = ['data/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt']
+    # file_list = ['data/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt']
+    # file_list = ['data/BIOGRID-ORGANISM-Arabidopsis_thaliana_Columbia-3.5.165.tab2.txt']
+    file_list = ['data/BIOGRID-ORGANISM-Human_Herpesvirus_8-3.5.165.tab2.txt']
+
     for file_name in file_list:
 
         root_name = file_name[5:-3]
@@ -109,11 +112,12 @@ if __name__ == "__main__":
         print("\t\tTime: %.4F" % (time.time() - start))
         # print("\t\tBetweenness centrality for nodes: {}".format(bt))
         print('top three nodes by betweenness:')
-        bts = sorted(bt, key=lambda x: x[1], reverse=True)[:3]
+        bts = sorted(bt, key=lambda x: x[1], reverse=True)[:5]
         print(bts)
 
         print('\n\n')
-        print(bt)
+        # print(bt)
         with open('analysis/betweenness_time.dat', 'a') as f:
             print("{}\t{}\t{}\t{}\t{}".format(root_name, file_size, G.number_of_nodes(), G.number_of_edges(), total_time), file=f)
+
 
