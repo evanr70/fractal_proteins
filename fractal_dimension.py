@@ -20,13 +20,15 @@ def compact_box_burning(input_graph):
     for sub_graph in sub_graphs:
         max_length = nx.diameter(sub_graph)
 
-        current_boxes = [count_boxes_of_length(sub_graph, i) for i in range(2, max_length + 2)]
+        current_boxes = [count_boxes_of_length(sub_graph, i) for i in range(1, max_length + 2)]
         total_boxes = [m + n for m, n in itertools.zip_longest(total_boxes, current_boxes, fillvalue=1)]
 
-    return calculate_fractal_dimension(np.log(total_boxes), len(total_boxes))
+    return [a_i - b_i for a_i, b_i in zip(total_boxes, [1]*len(total_boxes))]
 
 
 def count_boxes_of_length(input_sub_graph, length):
+    if length == 1:
+        return nx.number_of_nodes(input_sub_graph)
     if length == nx.diameter(input_sub_graph) + 1:
         return 1
     else:
@@ -41,11 +43,11 @@ def count_boxes_of_length(input_sub_graph, length):
             candidate_set.remove(start_node)
 
             while candidate_set:
-
                 candidate_set = evaluated_candidate_set(evaluation_set, candidate_set, input_sub_graph, length)
-                new_target = random.choice(candidate_set)
-                evaluation_set += new_target
-                candidate_set.remove(new_target)
+                if len(candidate_set) > 0:
+                    new_target = random.choice(candidate_set)
+                    evaluation_set.append(new_target)
+                    candidate_set.remove(new_target)
 
             number_of_boxes += 1
             remaining_nodes = remove_elements_from_array(remaining_nodes, evaluation_set)
@@ -72,17 +74,29 @@ def remove_elements_from_array(first_array, second_array):
 
 # ------------------------------------------------------------------------------------------------------------
 # Implementation of the Maximum-Excluded-Mass-Burning Algorithm
-def maximum_excluded_mass_burning_sub_graph(input_sub_graph):
-    total_boxes = [nx.number_of_nodes(input_sub_graph)]
-    max_path = nx.diameter(input_sub_graph) + 1
-    for i in range(2, max_path + 1):
-        if(i == max_path):
-            total_boxes.append(1)
-        if(i % 2 == 0 and i != max_path):
-            total_boxes.append(count_boxes_of_length(input_sub_graph, i))
-        if(i % 2 == 1 and i != max_path):
-            total_boxes.append(count_centers(input_sub_graph, (i - 1)/2))
-    return total_boxes
+def maximum_excluded_mass_burning(input_graph):
+    sub_graphs = list(nx.connected_component_subgraphs(input_graph))
+    total_boxes = []
+
+    for sub_graph in sub_graphs:
+        max_length = nx.diameter(sub_graph)
+
+        current_boxes = [maximum_excluded_mass_burning_sub_graph(sub_graph, i) for i in range(1, max_length + 2)]
+        total_boxes = [m + n for m, n in itertools.zip_longest(total_boxes, current_boxes, fillvalue=1)]
+
+    return [a_i - b_i for a_i, b_i in zip(total_boxes, [1]*len(total_boxes))]
+
+
+def maximum_excluded_mass_burning_sub_graph(input_sub_graph, length):
+    max_length = nx.diameter(input_sub_graph) + 1
+    if length == 1:
+        return nx.number_of_nodes(input_sub_graph)
+    if length == max_length:
+        return 1
+    if length % 2 == 0 and length != max_length:
+        return count_boxes_of_length(input_sub_graph, length)
+    if length % 2 == 1 and length != max_length:
+        return count_centers(input_sub_graph, (length - 1)/2)
 
 
 def count_centers(input_sub_graph, radius):
@@ -90,7 +104,7 @@ def count_centers(input_sub_graph, radius):
     nx.set_node_attributes(input_sub_graph, False, "center")
     covered = nx.get_node_attributes(input_sub_graph, "covered")
     centers = 0
-    while(all(value == True for value in covered.values()) is False):
+    while all(value == True for value in covered.values()) is False:
         (input_sub_graph, max_node) = excluded_masses(input_sub_graph, radius)
         input_sub_graph = cover_nodes(input_sub_graph, radius, max_node)
         covered = nx.get_node_attributes(input_sub_graph, "covered")
@@ -112,22 +126,22 @@ def excluded_masses(input_sub_graph, radius):
     max_node_mass = 0
     max_node = 0
     for x in nodes:
-        if(input_sub_graph.nodes[x]["center"] is not True):
+        if input_sub_graph.nodes[x]["center"] is not True:
             input_sub_graph.nodes[x]["excluded_mass"] = excluded_mass(input_sub_graph, radius, x)
-            if(input_sub_graph.nodes[x]["excluded_mass"] > max_node_mass):
+            if input_sub_graph.nodes[x]["excluded_mass"] > max_node_mass:
                 max_node = x
                 max_node_mass = input_sub_graph.nodes[x]["excluded_mass"]
-    return (input_sub_graph, max_node)
+    return input_sub_graph, max_node
 
 
 def excluded_mass(input_sub_graph, radius, node):
     paths = nx.single_source_shortest_path(input_sub_graph, node, cutoff=radius)
-    excluded_mass = 0
+    mass = 0
     for path in paths:
         if(input_sub_graph.node[path]["covered"] is False and
                 input_sub_graph.node[path]["center"] is False):
-            excluded_mass += 1
-    return excluded_mass
+            mass += 1
+    return mass
 
 
 # ------------------------------------------------------------------------------------------------------------
@@ -151,9 +165,9 @@ def test_algorithm(func, number_of_iterations, number_of_nodes):
 def test_algorithm_n_nodes(func, number_of_iterations, number_of_nodes):
     total_time = 0
     for i in range(number_of_iterations):
-        G = nx.fast_gnp_random_graph(number_of_nodes, 0.5)
+        random_graph = nx.fast_gnp_random_graph(number_of_nodes, 0.5)
         current_time = time.time()
-        func(G)
+        func(random_graph)
         total_time += (time.time() - current_time)
     return total_time / number_of_iterations
 
@@ -167,19 +181,20 @@ if __name__ == "__main__":
     # # nx.draw(H, with_labels=False, font_weight='bold')
     # # plt.show()
     # print(compact_box_burning(H))
-    node_number = 16
-    iteration_number = 20
-    G = nx.Graph()
-    G.add_nodes_from(["a", "b", "c", "d", "e"])
-    G.add_edge("a", "b")
-    G.add_edge("b", "c")
-    G.add_edge("c", "d")
-    G.add_edge("d", "e")
-    G.add_edge("c", "e")
+    # node_number = 16
+    # iteration_number = 20
+    # G = nx.Graph()
+    # G.add_nodes_from(["a", "b", "c", "d", "e"])
+    # G.add_edge("a", "b")
+    # G.add_edge("b", "c")
+    # G.add_edge("c", "d")
+    # G.add_edge("d", "e")
+    # G.add_edge("c", "e")
     # print(evaluated_candidate_set(["a"], ["b", "c", "d", "e"], G, 2))
     # print(count_boxes_of_length(G, 2))
     # print(count_centers(G, 1))
-    print(maximum_excluded_mass_burning_sub_graph(G))
+    # print(maximum_excluded_mass_burning(G))
+    # print(compact_box_burning(G))
     # plt.subplot(121)
     # nx.draw(G, with_labels=True, font_weight='bold')
     # plt.show()
@@ -220,19 +235,20 @@ if __name__ == "__main__":
     # nx.draw(I, with_labels=True, font_weight='bold')
     # plt.show()
 
-    # H = nx.Graph()
-    # H.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    # H.add_edge(1, 2)
-    # H.add_edge(2, 3)
-    # H.add_edge(3, 4)
-    # H.add_edge(4, 5)
-    # H.add_edge(3, 5)
-    # H.add_edge(6, 7)
-    # H.add_edge(8, 9)
-    # plt.subplot(121)
-    # nx.draw(H, with_labels=True, font_weight='bold')
-    # plt.show()
-    # print(compact_box_burning(H))
+    H = nx.Graph()
+    H.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    H.add_edge(1, 2)
+    H.add_edge(2, 3)
+    H.add_edge(3, 4)
+    H.add_edge(4, 5)
+    H.add_edge(3, 5)
+    H.add_edge(6, 7)
+    H.add_edge(8, 9)
+    plt.subplot(121)
+    nx.draw(H, with_labels=True, font_weight='bold')
+    plt.show()
+    print(compact_box_burning(H))
+    print(maximum_excluded_mass_burning(H))
 
     # node_number = 16
     # iteration_number = 20
