@@ -37,23 +37,15 @@ def count_boxes_of_length(input_sub_graph, length):
 
             start_node = random.choice(remaining_nodes)
             evaluation_set = [start_node]
-            candidate_set = evaluation_set.copy()
+            candidate_set = remaining_nodes.copy()
             candidate_set.remove(start_node)
 
             while candidate_set:
 
                 candidate_set = evaluated_candidate_set(evaluation_set, candidate_set, input_sub_graph, length)
-
-                if len(candidate_set) == 1:
-
-                    evaluation_set += candidate_set.pop()
-
-                else:
-
-                    new_target = random.choice(candidate_set)
-                    evaluation_set += new_target
-                    candidate_set = evaluation_set.copy()
-                    candidate_set.remove(new_target)
+                new_target = random.choice(candidate_set)
+                evaluation_set += new_target
+                candidate_set.remove(new_target)
 
             number_of_boxes += 1
             remaining_nodes = remove_elements_from_array(remaining_nodes, evaluation_set)
@@ -61,8 +53,60 @@ def count_boxes_of_length(input_sub_graph, length):
         return number_of_boxes
 
 
+def evaluated_candidate_set(evaluation_nodes, candidate_set, sub_graph, length):
+    return [x for x in candidate_set if in_union(evaluation_nodes, x, sub_graph, length)]
+
+
+def in_union(evaluation_nodes, target_node, sub_graph, length):
+    for current_node in evaluation_nodes:
+        if len(nx.bidirectional_shortest_path(sub_graph, current_node, target_node)) > length:
+            return False
+    return True
+
+
+def remove_elements_from_array(first_array, second_array):
+    second_set = set(second_array)
+    first_set = set(first_array)
+    return list(first_set.difference(second_set))
+
+
 # ------------------------------------------------------------------------------------------------------------
 # Implementation of the Maximum-Excluded-Mass-Burning Algorithm
+def maximum_excluded_mass_burning_sub_graph(input_sub_graph):
+    total_boxes = [nx.number_of_nodes(input_sub_graph)]
+    max_path = nx.diameter(input_sub_graph) + 1
+    for i in range(2, max_path + 1):
+        if(i == max_path):
+            total_boxes.append(1)
+        if(i % 2 == 0 and i != max_path):
+            total_boxes.append(count_boxes_of_length(input_sub_graph, i))
+        if(i % 2 == 1 and i != max_path):
+            total_boxes.append(count_centers(input_sub_graph, (i - 1)/2))
+    return total_boxes
+
+
+def count_centers(input_sub_graph, radius):
+    nx.set_node_attributes(input_sub_graph, False, "covered")
+    nx.set_node_attributes(input_sub_graph, False, "center")
+    covered = nx.get_node_attributes(input_sub_graph, "covered")
+    centers = 0
+    while(all(value == True for value in covered.values()) is False):
+        (input_sub_graph, max_node) = excluded_masses(input_sub_graph, radius)
+        input_sub_graph = cover_nodes(input_sub_graph, radius, max_node)
+        covered = nx.get_node_attributes(input_sub_graph, "covered")
+        centers += 1
+    return centers
+
+
+def cover_nodes(input_sub_graph, radius, max_node):
+    input_sub_graph.node[max_node]["center"] = True
+    input_sub_graph.node[max_node]["excluded_mass"] = 0
+    paths = nx.single_source_shortest_path(input_sub_graph, max_node, cutoff=radius)
+    for path in paths:
+        input_sub_graph.node[path]["covered"] = True
+    return input_sub_graph
+
+
 def excluded_masses(input_sub_graph, radius):
     nodes = list(nx.nodes(input_sub_graph))
     max_node_mass = 0
@@ -84,22 +128,6 @@ def excluded_mass(input_sub_graph, radius, node):
                 input_sub_graph.node[path]["center"] is False):
             excluded_mass += 1
     return excluded_mass
-
-def evaluated_candidate_set(evaluation_nodes, candidate_set, sub_graph, length):
-    return [x for x in candidate_set if in_union(evaluation_nodes, x, sub_graph, length)]
-
-
-def in_union(evaluation_nodes, target_node, sub_graph, length):
-    for current_node in evaluation_nodes:
-        if len(nx.bidirectional_shortest_path(sub_graph, current_node, target_node)) > length:
-            return False
-    return True
-
-
-def remove_elements_from_array(first_array, second_array):
-    second_set = set(second_array)
-    first_set = set(first_array)
-    return list(first_set.difference(second_set))
 
 
 # ------------------------------------------------------------------------------------------------------------
@@ -133,12 +161,12 @@ def test_algorithm_n_nodes(func, number_of_iterations, number_of_nodes):
 if __name__ == "__main__":
     # H = nx.barabasi_albert_graph(50, 20)
 
-    H = graph_magic.get_graph_from_file("data/BIOGRID-ORGANISM-Rattus_norvegicus-3.5.165.tab2.txt")
-
-    # plt.subplot(111)
-    # nx.draw(H, with_labels=False, font_weight='bold')
-    # plt.show()
-    print(compact_box_burning(H))
+    # H = graph_magic.get_graph_from_file("data/BIOGRID-ORGANISM-Rattus_norvegicus-3.5.165.tab2.txt")
+    #
+    # # plt.subplot(111)
+    # # nx.draw(H, with_labels=False, font_weight='bold')
+    # # plt.show()
+    # print(compact_box_burning(H))
     node_number = 16
     iteration_number = 20
     G = nx.Graph()
@@ -148,35 +176,39 @@ if __name__ == "__main__":
     G.add_edge("c", "d")
     G.add_edge("d", "e")
     G.add_edge("c", "e")
+    # print(evaluated_candidate_set(["a"], ["b", "c", "d", "e"], G, 2))
+    # print(count_boxes_of_length(G, 2))
+    # print(count_centers(G, 1))
+    print(maximum_excluded_mass_burning_sub_graph(G))
     # plt.subplot(121)
     # nx.draw(G, with_labels=True, font_weight='bold')
     # plt.show()
     # print(colourGraph(G))
     # print(countBoxesOfLength(G, 2, nx.diameter(G)))
     # print(compact_box_burning(G))
-    nx.set_node_attributes(G, False, "covered")
-    nx.set_node_attributes(G, False, "center")
-    (G, max_node) = excluded_masses(G, 1)
-    print(G.node["a"]["excluded_mass"])
-    print(G.node["b"]["excluded_mass"])
-    print(G.node["c"]["excluded_mass"])
-    print(G.node["d"]["excluded_mass"])
-    print(G.node["e"]["excluded_mass"])
-    print(max_node)
+    # nx.set_node_attributes(G, False, "covered")
+    # nx.set_node_attributes(G, False, "center")
+    # covered = nx.get_node_attributes(G, "covered")
+    # center = nx.get_node_attributes(G, "center")
+    # print(covered)
+    # print(all(value == False for value in covered.values()))
+    # (G, max_node) = excluded_masses(G, 1)
+    # # print(G.node["a"]["excluded_mass"])
+    # # print(G.node["b"]["excluded_mass"])
+    # # print(G.node["c"]["excluded_mass"])
+    # # print(G.node["d"]["excluded_mass"])
+    # # print(G.node["e"]["excluded_mass"])
+    # # print(max_node)
+    # G = cover_nodes(G, 1, "c")
+    # covered = nx.get_node_attributes(G, "covered")
+    # print(covered)
+    # print(all(value == False for value in covered.values()))
+    # G.node[max_node]["center"] = True
+    # G.node[max_node]["excluded_mass"] = 0
+    # G.node["d"]["covered"] = True
+    # G.node["e"]["covered"] = True
+    # G.node["b"]["covered"] = True
 
-    G.node[max_node]["center"] = True
-    G.node[max_node]["excluded_mass"] = 0
-    G.node["d"]["covered"] = True
-    G.node["e"]["covered"] = True
-    G.node["b"]["covered"] = True
-
-    (G, max_node) = excluded_masses(G, 1)
-    print(G.node["a"]["excluded_mass"])
-    print(G.node["b"]["excluded_mass"])
-    print(G.node["c"]["excluded_mass"])
-    print(G.node["d"]["excluded_mass"])
-    print(G.node["e"]["excluded_mass"])
-    print(max_node)
 
 
     # I = nx.grid_2d_graph(3, 3)
