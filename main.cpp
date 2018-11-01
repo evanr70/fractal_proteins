@@ -50,11 +50,13 @@ single_source_shortest_path_basic(vector<string> nodes, const string &s, map<str
     map<string, float> sigma;
     vector<string> Q;
 
+    // create a path and distance for each node
     for (const auto &v : nodes) {
         P[v] = vector<string>();
         sigma[v] = 0.0;
     }
 
+    // The distance of the source is 0
     D[s] = 0;
     sigma[s] = 1.0;
 
@@ -138,37 +140,20 @@ int main() {
     map<string, float> betweenness;
     map<string, vector<string>> connections;
     param_tuple return_tuple;
-
     vector<string> nodes;
 
+    string file_name = R"(/mnt/c/Users/Evan/PycharmProjects/fractal_proteins/connections/BIOGRID-ORGANISM-Homo_sapiens-3.5.165.tab2.connections)";
 
+    // open file of connections
+    ifstream inf(file_name);
 
-//    ifstream inf(
-//            R"(C:\Users\Evan\PycharmProjects\fractal_proteins\data\BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt)"
-//    );
-
-//    ifstream inf(
-//        R"(/mnt/c/Users/Evan/PycharmProjects/fractal_proteins/data/BIOGRID-ORGANISM-Human_papillomavirus_16-3.5.165.tab2.txt)"
-//    );
-
-//    ifstream inf(
-//            R"(/mnt/c/Users/Evan/PycharmProjects/fractal_proteins/connections/BIOGRID-ORGANISM-Human_Herpesvirus_8-3.5.165.tab2.connections)"
-//            );
-
-//    ifstream inf(
-//            R"(/mnt/c/Users/Evan/PycharmProjects/fractal_proteins/connections/BIOGRID-ORGANISM-Plasmodium_falciparum_3D7-3.5.165.tab2.connections)"
-//            );
-
-    ifstream inf(
-            R"(/mnt/c/Users/Evan/PycharmProjects/fractal_proteins/connections/BIOGRID-ORGANISM-Homo_sapiens-3.5.165.tab2.connections)"
-            );
-
-
+    // check file could be opened
     if (!inf) {
         cout << "couldn't open file" << endl;
         return(1);
     }
 
+    // read until end of file
     while (inf) {
         string strInput;
         string token;
@@ -178,27 +163,36 @@ int main() {
         string first;
 
         getline(inf, strInput);
+
+        // split line by tab characters
         while ((pos = strInput.find(delimiter)) != string::npos) {
+            // get the token before the first tab
             token = strInput.substr(0, pos);
+            // delete the token and the tab
             strInput.erase(0, pos + delimiter.length());
+            // skip empty lines
             if (token.empty()) {
                 continue;
             }
+            // store the name of the parent protein
             if (first.empty()) {
                 first = token;
             } else {
+                // if not the parent, add to list of children
                 line.push_back(token);
             }
         }
+        // map children onto parents
         if (!first.empty()) {
             connections[first] = line;
         }
     }
 
+    // get a list of the nodes present in the graph
     nodes = extract_keys(connections);
     int num_nodes = nodes.size();
 
-
+    // set the betweenness of all nodes equal to 0.0
     for (const auto &node : nodes) {
         betweenness[node] = 0.0;
     }
@@ -208,18 +202,20 @@ int main() {
     int counter = 0;
     int report_iterations = 1;
 
+    // record how long it takes to perform the process on a single node
     chrono::milliseconds elapsed{};
     auto start = chrono::high_resolution_clock::now();
     double remaining;
+
 
     for (const auto &s : nodes) {
         return_tuple = single_source_shortest_path_basic(nodes, s, connections);
         vector<string> S = get<0>(return_tuple);
         map<string, vector<string>> P = get<1>(return_tuple);
         map<string, float> sigma = get<2>(return_tuple);
+
         if (counter % report_iterations == 0) {
             cout << "node " << counter << " of " << num_nodes << endl;
-
         }
 
         ++counter;
@@ -232,7 +228,6 @@ int main() {
         }
 
         betweenness = accumulate_basic(betweenness, S, P, sigma, s);
-//        print_top_five(betweenness);
     }
 
     cout << "num_nodes = " << num_nodes << endl;
