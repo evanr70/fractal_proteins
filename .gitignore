@@ -1,2 +1,5 @@
 # Ignoring the PyCharm setup folder
 .idea/*
+
+# Ignore the outputs in graphs folder
+graphs/*

@@ -156,10 +156,8 @@ def calculate_fractal_dimension(ln_box_number, max_length):
 # ------------------------------------------------------------------------------------------------------------
 # These functions measure the time taken for a given algorithm to run.
 def test_algorithm(func, number_of_iterations, number_of_nodes):
-    return_times = np.array(test_algorithm_n_nodes(func, number_of_iterations, 2))
-    for i in range(3, number_of_nodes + 1):
-        return_times = np.append(return_times, test_algorithm_n_nodes(func, number_of_iterations, i))
-    return return_times
+    return [test_algorithm_n_nodes(func, number_of_iterations, i)
+            for i in range(2, number_of_nodes + 1)]
 
 
 def test_algorithm_n_nodes(func, number_of_iterations, number_of_nodes):
@@ -169,10 +167,10 @@ def test_algorithm_n_nodes(func, number_of_iterations, number_of_nodes):
         current_time = time.time()
         func(random_graph)
         total_time += (time.time() - current_time)
-    return total_time / number_of_iterations
+    return total_time/number_of_iterations
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # H = nx.barabasi_albert_graph(50, 20)
 
     # H = graph_magic.get_graph_from_file("data/BIOGRID-ORGANISM-Rattus_norvegicus-3.5.165.tab2.txt")
@@ -235,20 +233,21 @@ if __name__ == "__main__":
     # nx.draw(I, with_labels=True, font_weight='bold')
     # plt.show()
 
-    H = nx.Graph()
-    H.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    H.add_edge(1, 2)
-    H.add_edge(2, 3)
-    H.add_edge(3, 4)
-    H.add_edge(4, 5)
-    H.add_edge(3, 5)
-    H.add_edge(6, 7)
-    H.add_edge(8, 9)
-    plt.subplot(121)
-    nx.draw(H, with_labels=True, font_weight='bold')
-    plt.show()
-    print(compact_box_burning(H))
-    print(maximum_excluded_mass_burning(H))
+    # H = nx.Graph()
+    # H.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    # H.add_edge(1, 2)
+    # H.add_edge(2, 3)
+    # H.add_edge(3, 4)
+    # H.add_edge(4, 5)
+    # H.add_edge(3, 5)
+    # H.add_edge(6, 7)
+    # H.add_edge(8, 9)
+    # plt.subplot(121)
+    # nx.draw(H, with_labels=True, font_weight='bold')
+    # plt.show()
+    # print(compact_box_burning(H))
+    # print(maximum_excluded_mass_burning(H))
+    # print(test_algorithm(compact_box_burning, 2, 10))
 
     # node_number = 16
     # iteration_number = 20
