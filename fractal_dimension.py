@@ -146,12 +146,15 @@ def excluded_mass(input_sub_graph, radius, node):
 
 # ------------------------------------------------------------------------------------------------------------
 # This is the set of functions which are required by both algorithms.
-def calculate_fractal_dimension(ln_box_number, max_length):
+def calculate_fractal_dimension_spearman(ln_box_number, max_length):
     ln_box_length = np.log(np.arange(1, max_length + 1))
     gradient = stats.spearmanr(np.log(np.arange(1, max_length + 1)), ln_box_number)[0] * (
             np.std(ln_box_number) / np.std(ln_box_length))
     return -gradient
 
+
+def calculate_fractal_dimension(ln_box_number, max_length):
+    return -np.polyfit(np.log(np.arange(1, max_length + 1)), ln_box_number, deg=1)[0]
 
 # ------------------------------------------------------------------------------------------------------------
 # These functions measure the time taken for a given algorithm to run.
