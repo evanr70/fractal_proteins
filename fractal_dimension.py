@@ -1,3 +1,5 @@
+import glob
+
 import networkx as nx
 import numpy as np
 import math
@@ -6,6 +8,7 @@ import matplotlib.pyplot as plt
 import random
 import itertools
 import time
+import os
 
 import graph_magic
 
@@ -156,6 +159,7 @@ def calculate_fractal_dimension_spearman(ln_box_number, max_length):
 def calculate_fractal_dimension(ln_box_number, max_length):
     return -np.polyfit(np.log(np.arange(1, max_length + 1)), ln_box_number, deg=1)[0]
 
+
 # ------------------------------------------------------------------------------------------------------------
 # These functions measure the time taken for a given algorithm to run.
 def test_algorithm(func, number_of_iterations, number_of_nodes):
@@ -177,19 +181,49 @@ def test_algorithm_n_nodes(func, number_of_iterations, number_of_nodes):
 # Putting it all together
 def calculate_fractal_dim_for_graph(input_graph):
     number_of_boxes = maximum_excluded_mass_burning(input_graph)
-    return calculate_fractal_dimension(np.log(np.array(number_of_boxes)), len(number_of_boxes) + 1)
+    return calculate_fractal_dimension(np.log(np.array(number_of_boxes)), len(number_of_boxes))
 
 
 if __name__ == "__main__":
-    H = nx.barabasi_albert_graph(50, 20)
+    # H = nx.barabasi_albert_graph(50, 20)
 
-    H = graph_magic.get_graph_from_file("data/BIOGRID-ORGANISM-Rattus_norvegicus-3.5.165.tab2.txt")
-    
-    plt.subplot(111)
-    nx.draw(H, with_labels=False, font_weight='bold')
-    plt.show()
-    print(maximum_excluded_mass_burning(H))
-    print(calculate_fractal_dim_for_graph(H))
+    file_list = glob.glob('data/*.txt')
+
+    file_list.sort(key=lambda x: os.path.getsize(x))
+
+    with open("analysis/frac_time_by_size.dat", 'w+') as f:
+        print("#filename\tn\tm\tnm\tt1\tt2\ttt", file=f)
+
+    for file_name in file_list:
+        print(file_name)
+
+        H = graph_magic.get_graph_from_file(file_name)
+        root_name = file_name[5:]
+
+        # plt.subplot(111)
+        # nx.draw(H, with_labels=False, font_weight='bold')
+        # plt.show()
+
+        start_time = time.time()
+
+        memb = maximum_excluded_mass_burning(H)
+
+        mid_time = time.time() - start_time
+
+        fd = calculate_fractal_dim_for_graph(H)
+
+        end_time = time.time() - mid_time
+
+        total_time = time.time() - start_time
+
+        results = map(str,
+                      [file_name, H.number_of_nodes(), H.number_of_edges(), H.number_of_edges() * H.number_of_nodes(),
+                       mid_time, end_time, total_time])
+
+        with open("analysis/frac_time_by_size.dat", 'a') as f:
+            print("\t".join(results), file=f)
+
+
     # node_number = 16
     # iteration_number = 20
     # G = nx.Graph()
