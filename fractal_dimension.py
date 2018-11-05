@@ -173,15 +173,23 @@ def test_algorithm_n_nodes(func, number_of_iterations, number_of_nodes):
     return total_time/number_of_iterations
 
 
-# if __name__ == "__main__":
-    # H = nx.barabasi_albert_graph(50, 20)
+# --------------------------------------------------------------------------------------------------
+# Putting it all together
+def calculate_fractal_dim_for_graph(input_graph):
+    number_of_boxes = maximum_excluded_mass_burning(input_graph)
+    return calculate_fractal_dimension(np.log(np.array(number_of_boxes)), len(number_of_boxes) + 1)
 
-    # H = graph_magic.get_graph_from_file("data/BIOGRID-ORGANISM-Rattus_norvegicus-3.5.165.tab2.txt")
-    #
-    # # plt.subplot(111)
-    # # nx.draw(H, with_labels=False, font_weight='bold')
-    # # plt.show()
-    # print(compact_box_burning(H))
+
+if __name__ == "__main__":
+    H = nx.barabasi_albert_graph(50, 20)
+
+    H = graph_magic.get_graph_from_file("data/BIOGRID-ORGANISM-Rattus_norvegicus-3.5.165.tab2.txt")
+    
+    plt.subplot(111)
+    nx.draw(H, with_labels=False, font_weight='bold')
+    plt.show()
+    print(maximum_excluded_mass_burning(H))
+    print(calculate_fractal_dim_for_graph(H))
     # node_number = 16
     # iteration_number = 20
     # G = nx.Graph()
