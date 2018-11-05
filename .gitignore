@@ -3,3 +3,6 @@
 
 # Ignore the outputs in graphs folder
 graphs/*
+
+# Ignore data in algorithm tests folder
+algorithm_tests/Al_data.csv
