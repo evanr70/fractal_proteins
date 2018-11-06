@@ -156,8 +156,8 @@ def calculate_fractal_dimension_spearman(ln_box_number, max_length):
     return -gradient
 
 
-def calculate_fractal_dimension(ln_box_number, max_length):
-    return -np.polyfit(np.log(np.arange(1, max_length + 1)), ln_box_number, deg=1)[0]
+def calculate_fractal_dimension(ln_box_number):
+    return -np.polyfit(np.log(np.arange(1, len(ln_box_number) + 1)), ln_box_number, deg=1)[0]
 
 # --------------------------------------------------------------------------------------------------
 # Putting it all together
