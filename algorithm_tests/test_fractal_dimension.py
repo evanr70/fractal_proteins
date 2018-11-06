@@ -9,7 +9,7 @@ def box_theory(length, fractal_dimension, number_of_nodes):
 
 
 if __name__ == "__main__":
-    node_number = 10000
+    node_number = 1000
     mean = 0.01*node_number*(node_number - 1)
     graph = nx.fast_gnp_random_graph(node_number, (2*mean)/(node_number*(node_number - 1)))
     mass_boxes = fd.maximum_excluded_mass_burning(graph)

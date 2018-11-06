@@ -159,24 +159,6 @@ def calculate_fractal_dimension_spearman(ln_box_number, max_length):
 def calculate_fractal_dimension(ln_box_number, max_length):
     return -np.polyfit(np.log(np.arange(1, max_length + 1)), ln_box_number, deg=1)[0]
 
-
-# ------------------------------------------------------------------------------------------------------------
-# These functions measure the time taken for a given algorithm to run.
-def test_algorithm(func, number_of_iterations, number_of_nodes):
-    return [test_algorithm_n_nodes(func, number_of_iterations, i)
-            for i in range(2, number_of_nodes + 1)]
-
-
-def test_algorithm_n_nodes(func, number_of_iterations, number_of_nodes):
-    total_time = 0
-    for i in range(number_of_iterations):
-        random_graph = nx.fast_gnp_random_graph(number_of_nodes, 0.5)
-        current_time = time.time()
-        func(random_graph)
-        total_time += (time.time() - current_time)
-    return total_time/number_of_iterations
-
-
 # --------------------------------------------------------------------------------------------------
 # Putting it all together
 def calculate_fractal_dim_for_graph(input_graph):
