@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 
 
-def get_graph_from_file(file_name):
+def get_graph_from_file(file_name, largest_only=True):
 
     data = np.loadtxt(file_name,
                       dtype=str,
@@ -17,4 +17,8 @@ def get_graph_from_file(file_name):
         G.add_edge(*data)
 
     G.remove_edges_from(G.selfloop_edges())
+
+    if largest_only:
+        return max(nx.connected_component_subgraphs(G), key=len)
+
     return G
