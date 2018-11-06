@@ -4,8 +4,8 @@ import numpy as np
 
 
 if __name__ == "__main__":
-    node_number = 2000
-    iter_number = 100
+    node_number = 600
+    iter_number = 20
     burning_al_times = fd.test_algorithm(fd.compact_box_burning, iter_number, node_number)
     mass_al_times = fd.test_algorithm(fd.maximum_excluded_mass_burning, iter_number, node_number)
     plt.plot(np.arange(2, node_number + 1), burning_al_times, label="Box Burning Algorithm")

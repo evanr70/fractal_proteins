@@ -10,23 +10,25 @@ def density(mean, number_of_nodes):
 
 def test_density(number_of_nodes, iterations):
     fractal_dimensions = []
-    for j in range(1, int((number_of_nodes - 1)*number_of_nodes*0.5 + 1)):
+    xx = np.arange(0, int((number_of_nodes - 1)*number_of_nodes*0.5) + 10, 10)
+    for j in xx:
         total_fd = 0
-        for i in range(0, iterations):
-            random_ER_graph = nx.fast_gnp_random_graph(number_of_nodes, density(j, number_of_nodes))
-            if len(list(nx.connected_component_subgraphs(random_ER_graph))) != number_of_nodes:
-                current_boxes = fd.maximum_excluded_mass_burning(random_ER_graph)
-                total_fd += fd.calculate_fractal_dimension(np.log(np.array(current_boxes)), len(current_boxes))
-            else:
-                i -= 1
+        if j != 0:
+            for i in range(0, iterations):
+                random_ER_graph = nx.fast_gnp_random_graph(number_of_nodes, density(j, number_of_nodes))
+                if len(list(nx.connected_component_subgraphs(random_ER_graph))) != number_of_nodes:
+                    current_boxes = fd.maximum_excluded_mass_burning(random_ER_graph)
+                    total_fd += fd.calculate_fractal_dimension(np.log(np.array(current_boxes)), len(current_boxes))
+                else:
+                    i -= 1
         fractal_dimensions.append(total_fd/iterations)
     return fractal_dimensions
 
 if __name__ == "__main__":
     node_number = 200
-    iterations = 100
+    iterations = 10000
     fractal_dimensions = test_density(node_number, iterations)
-    means = np.linspace(1, node_number*(node_number - 1), node_number*(node_number - 1))
+    means = np.arange(0, int((node_number - 1) * node_number * 0.5) + 10, 10)
     densities = list(map(density, means, [node_number]*(len(means) + 1)))
     plt.plot(densities, fractal_dimensions)
     plt.xlabel("Densities")
