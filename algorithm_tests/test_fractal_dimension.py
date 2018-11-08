@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from scipy import stats
+import graph_magic
+import csv
 
 
 def box_theory(length, gradient, number_of_nodes):
@@ -21,9 +23,13 @@ def fit_spearmans(mass_boxes, range):
 
 
 if __name__ == "__main__":
-    node_number = 10000
-    graph = nx.fast_gnp_random_graph(node_number, 0.01)
-    mass_boxes = fd.maximum_excluded_mass_burning(graph)
+    # graph = graph_magic.get_graph_from_file(
+    #     "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Homo_sapiens-3.5.165.tab2.txt")
+    graph = graph_magic.get_graph_from_file(
+        "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Escherichia_coli_K12_MC4100_BW2952-3.5.165.tab2.txt")
+    node_number = nx.number_of_nodes(graph)
+    print(node_number)
+    mass_boxes = fd.compact_box_burning(graph)
     print(mass_boxes)
     # plt.subplot(121)
     # nx.draw(graph, with_labels=True, font_weight='bold')
@@ -67,6 +73,37 @@ if __name__ == "__main__":
     print("Difference between Pearson's approximation and actual lnnumber of boxes.")
     print(np.subtract(np.log(mass_boxes), ln_boxes_pearson_theory))
 
+    with open('boxes1.csv', mode='w') as employee_file:
+        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        employee_writer.writerow(["Difference between Spearman's approximation and actual number of boxes."])
+        employee_writer.writerow(np.subtract(mass_boxes, boxes_spearman_theory))
+        employee_writer.writerow(["Mean and Variance of difference"])
+        employee_writer.writerow([np.mean(np.subtract(mass_boxes, boxes_spearman_theory)),
+                                  np.var(np.subtract(mass_boxes, boxes_spearman_theory))])
+        employee_writer.writerow([])
+
+        employee_writer.writerow(["Difference between Pearson's approximation and actual number of boxes."])
+        employee_writer.writerow(np.subtract(mass_boxes, boxes_pearson_theory))
+        employee_writer.writerow(["Mean and Variance of difference"])
+        employee_writer.writerow([np.mean(np.subtract(mass_boxes, boxes_pearson_theory)),
+                                  np.var(np.subtract(mass_boxes, boxes_pearson_theory))])
+        employee_writer.writerow([])
+
+        employee_writer.writerow(["Difference between Spearman's approximation and actual ln number of boxes."])
+        employee_writer.writerow(np.subtract(np.log(mass_boxes), ln_boxes_spearman_theory))
+        employee_writer.writerow(["Mean and Variance of difference"])
+        employee_writer.writerow([np.mean(np.subtract(np.log(mass_boxes), np.log(boxes_spearman_theory))),
+                                  np.var(np.subtract(np.log(mass_boxes), np.log(boxes_spearman_theory)))])
+        employee_writer.writerow([])
+
+        employee_writer.writerow(["Difference between Pearson's approximation and actual ln number of boxes."])
+        employee_writer.writerow(np.subtract(np.log(mass_boxes), ln_boxes_pearson_theory))
+        employee_writer.writerow(["Mean and Variance of difference"])
+        employee_writer.writerow([np.mean(np.subtract(np.log(mass_boxes), np.log(boxes_pearson_theory))),
+                                  np.var(np.subtract(np.log(mass_boxes), np.log(boxes_pearson_theory)))])
+        employee_writer.writerow([])
+
     mass_boxes.pop(0)
     max_length = len(mass_boxes)
     lengths = np.arange(2, max_length + 2)
@@ -103,5 +140,35 @@ if __name__ == "__main__":
     print(np.subtract(mass_boxes, boxes_pearson_theory))
     print("Difference between Spearman's approximation and actual ln number of boxes.")
     print(np.subtract(np.log(mass_boxes), ln_boxes_spearman_theory))
-    print("Difference between Pearson's approximation and actual lnnumber of boxes.")
+    print("Difference between Pearson's approximation and actual ln number of boxes.")
     print(np.subtract(np.log(mass_boxes), ln_boxes_pearson_theory))
+    with open('boxes2.csv', mode='w') as employee_file:
+        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        employee_writer.writerow(["Difference between Spearman's approximation and actual number of boxes."])
+        employee_writer.writerow(np.subtract(mass_boxes, boxes_spearman_theory))
+        employee_writer.writerow(["Mean and Variance of difference"])
+        employee_writer.writerow([np.mean(np.subtract(mass_boxes, boxes_spearman_theory)),
+                                  np.var(np.subtract(mass_boxes, boxes_spearman_theory))])
+        employee_writer.writerow([])
+
+        employee_writer.writerow(["Difference between Pearson's approximation and actual number of boxes."])
+        employee_writer.writerow(np.subtract(mass_boxes, boxes_pearson_theory))
+        employee_writer.writerow(["Mean and Variance of difference"])
+        employee_writer.writerow([np.mean(np.subtract(mass_boxes, boxes_pearson_theory)),
+                                  np.var(np.subtract(mass_boxes, boxes_pearson_theory))])
+        employee_writer.writerow([])
+
+        employee_writer.writerow(["Difference between Spearman's approximation and actual ln number of boxes."])
+        employee_writer.writerow(np.subtract(np.log(mass_boxes), ln_boxes_spearman_theory))
+        employee_writer.writerow(["Mean and Variance of difference"])
+        employee_writer.writerow([np.mean(np.subtract(np.log(mass_boxes), np.log(boxes_spearman_theory))),
+                                  np.var(np.subtract(np.log(mass_boxes), np.log(boxes_spearman_theory)))])
+        employee_writer.writerow([])
+
+        employee_writer.writerow(["Difference between Pearson's approximation and actual ln number of boxes."])
+        employee_writer.writerow(np.subtract(np.log(mass_boxes), ln_boxes_pearson_theory))
+        employee_writer.writerow(["Mean and Variance of difference"])
+        employee_writer.writerow([np.mean(np.subtract(np.log(mass_boxes), np.log(boxes_pearson_theory))),
+                                  np.var(np.subtract(np.log(mass_boxes), np.log(boxes_pearson_theory)))])
+        employee_writer.writerow([])

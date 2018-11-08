@@ -17,6 +17,7 @@ import graph_magic
 # These are the set of functions which implement the Compact Box Burning algorithm.
 
 def compact_box_burning(input_graph):
+    print("Compact Box Burning Started")
     sub_graphs = list(nx.connected_component_subgraphs(input_graph))
     total_boxes = []
 
@@ -30,6 +31,7 @@ def compact_box_burning(input_graph):
 
 
 def count_boxes_of_length(input_sub_graph, length):
+    print(length)
     if length == 1:
         return nx.number_of_nodes(input_sub_graph)
     if length == nx.diameter(input_sub_graph) + 1:
