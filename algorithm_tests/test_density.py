@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import time
 import itertools
 from scipy import stats
+import math
 
 
 def add_vectors(vec1, vec2):
@@ -33,18 +34,76 @@ def test_density(number_of_nodes, iterations):
     return [0] + return_variable
 
 
+def gradients(fractal_dimensions, densities):
+    density_gradients = []
+    for i in range(len(densities) - 1):
+        density_gradients.append((fractal_dimensions[i + 1] - fractal_dimensions[i])
+           /(densities[i + 1] - densities[i]))
+    return density_gradients
+
+
+def lower_gradients(gradients, densities):
+    mean_gradients = np.mean(gradients)
+    lower_gradients = [densities]
+    for i in range(len(gradients)):
+        if math.abs(gradients[i]) < 0.1*mean_gradients:
+            lower_gradients.append(densities[i])
+    return lower_gradients
+
+
 if __name__ == "__main__":
-    node_number = 100
-    iterations = 10
-    fractal_dimensions = test_density(node_number, iterations)
-    means = np.arange(0, int((node_number - 1) * node_number * 0.5) + 10, 10)
-    densities = list(map(density, means, [node_number]*(len(means) + 1)))
-    print(stats.spearmanr(densities, fractal_dimensions)[0])
-    plt.plot(densities, fractal_dimensions)
+    correlations = []
+    plt.figure()
+    for i in range(1, 11):
+        node_number = 20*i
+        iterations = 10
+        fractal_dimensions = test_density(node_number, iterations)
+        means = np.arange(0, int((node_number - 1) * node_number * 0.5) + 10, 10)
+        densities = list(map(density, means, [node_number]*(len(means) + 1)))
+        correlations.append(stats.spearmanr(densities, fractal_dimensions)[0])
+        plt.plot(densities, fractal_dimensions)
+        if i == 1:
+            lower_number_hist_data = lower_gradients(gradients(fractal_dimensions, densities),densities)
+        if i == 5:
+            mid_number_hist_data = lower_gradients(gradients(fractal_dimensions, densities),densities)
+        if i == 10:
+            high_number_hist_data = lower_gradients(gradients(fractal_dimensions, densities),densities)
     plt.xlabel("Densities")
     plt.ylabel("Fractal Dimensions")
     plt.savefig("../graphs/fractal_dimensions.png")
+
+    plt.figure()
+    plt.hist(lower_number_hist_data, 20)
+    plt.xlabel("Densities with little change in the TFD")
+    plt.savefig("../graphs/20_node_histogram.png")
+
+    plt.figure()
+    plt.hist(mid_number_hist_data, 20)
+    plt.xlabel("Densities with little change in the TFD")
+    plt.savefig("../graphs/10_node_histogram.png")
+
+    plt.figure()
+    plt.hist(high_number_hist_data, 20)
+    plt.xlabel("Densities with little change in the TFD")
+    plt.savefig("../graphs/200_node_histogram.png")
+
+    with open('correlations.csv', mode='w') as employee_file:
+        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        employee_writer.writerow(correlations)
     # G = nx.fast_gnp_random_graph(node_number, 0.05)
     # current_time = time.time()
     # print(fd.maximum_excluded_mass_burning(G))
     # print(time.time() - current_time)
+
+    #     for i in range(len(densities) - 1):
+    #         density_gradients.append((fractal_dimensions[i + 1] - fractal_dimensions[i])
+    #            /(densities[i + 1] - densities[i]))
+    # mean_gradient = np.mean(density_gradients)
+    # std_gradient = np.std(density_gradients)
+    # print(mean_gradient, std_gradient)
+    # density_range = []
+    # for i in range(len(densities) - 1):
+    #     if abs((fractal_dimensions[i + 1] - fractal_dimensions[i])
+    #            /(densities[i + 1] -  densities[i])) < 0.1*mean_gradient:
+    #         density_range.append(densities[i])
+    # print(min(density_range), max(density_range))
