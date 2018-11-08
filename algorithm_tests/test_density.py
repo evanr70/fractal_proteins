@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import itertools
+from scipy import stats
 
 
 def add_vectors(vec1, vec2):
@@ -33,12 +34,17 @@ def test_density(number_of_nodes, iterations):
 
 
 if __name__ == "__main__":
-    node_number = 200
+    node_number = 100
     iterations = 10
     fractal_dimensions = test_density(node_number, iterations)
     means = np.arange(0, int((node_number - 1) * node_number * 0.5) + 10, 10)
     densities = list(map(density, means, [node_number]*(len(means) + 1)))
+    print(stats.spearmanr(densities, fractal_dimensions)[0])
     plt.plot(densities, fractal_dimensions)
     plt.xlabel("Densities")
     plt.ylabel("Fractal Dimensions")
     plt.savefig("../graphs/fractal_dimensions.png")
+    # G = nx.fast_gnp_random_graph(node_number, 0.05)
+    # current_time = time.time()
+    # print(fd.maximum_excluded_mass_burning(G))
+    # print(time.time() - current_time)

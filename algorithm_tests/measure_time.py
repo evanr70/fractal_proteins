@@ -13,6 +13,7 @@ def test_algorithm(func, number_of_iterations, number_of_nodes):
 def test_algorithm_n_nodes(func, number_of_iterations, number_of_nodes):
     total_time = 0
     for i in range(number_of_iterations):
+        print(i)
         random_graph = nx.fast_gnp_random_graph(number_of_nodes, 0.5)
         current_time = time.time()
         func(random_graph)
