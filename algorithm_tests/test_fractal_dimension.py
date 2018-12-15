@@ -23,10 +23,10 @@ def fit_spearmans(mass_boxes, range):
 
 
 if __name__ == "__main__":
-    # graph = graph_magic.get_graph_from_file(
-    #     "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Homo_sapiens-3.5.165.tab2.txt")
     graph = graph_magic.get_graph_from_file(
-        "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Escherichia_coli_K12_MC4100_BW2952-3.5.165.tab2.txt")
+        "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt")
+    # graph = graph_magic.get_graph_from_file(
+    #     "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Escherichia_coli_K12_MC4100_BW2952-3.5.165.tab2.txt")
     node_number = nx.number_of_nodes(graph)
     print(node_number)
     mass_boxes = fd.compact_box_burning(graph)
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     plt.xlabel("Lengths of Boxes")
     plt.ylabel("Number of Boxes")
     plt.legend()
-    plt.savefig("../graphs/no_of_boxes_from_all_boxes.png")
+    plt.savefig("../graphs/no_of_boxes_from_all_boxes1.png")
 
     plt.figure()
     plt.scatter(np.log(lengths), np.log(mass_boxes), label="Actual")
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     plt.xlabel("Log Lengths of Boxes")
     plt.ylabel("Log Number of Boxes")
     plt.legend()
-    plt.savefig("../graphs/log_no_of_boxes_from_all_boxes.png")
+    plt.savefig("../graphs/log_no_of_boxes_from_all_boxes1.png")
     print("Difference between Spearman's approximation and actual number of boxes.")
     print(np.subtract(mass_boxes, boxes_spearman_theory))
     print("Difference between Pearson's approximation and actual number of boxes.")
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     print("Difference between Pearson's approximation and actual lnnumber of boxes.")
     print(np.subtract(np.log(mass_boxes), ln_boxes_pearson_theory))
 
-    with open('boxes1.csv', mode='w') as employee_file:
+    with open('boxes21.csv', mode='w') as employee_file:
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         employee_writer.writerow(["Difference between Spearman's approximation and actual number of boxes."])
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     plt.xlabel("Lengths of Boxes")
     plt.ylabel("Number of Boxes")
     plt.legend()
-    plt.savefig("../graphs/no_of_boxes.png")
+    plt.savefig("../graphs/no_of_boxes1.png")
 
     plt.figure()
     plt.scatter(np.log(lengths), np.log(mass_boxes), label="Actual")
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     plt.xlabel("Log Lengths of Boxes")
     plt.ylabel("Log Number of Boxes")
     plt.legend()
-    plt.savefig("../graphs/log_no_of_boxes.png")
+    plt.savefig("../graphs/log_no_of_boxes1.png")
     print("Difference between Spearman's approximation and actual number of boxes.")
     print(np.subtract(mass_boxes, boxes_spearman_theory))
     print("Difference between Pearson's approximation and actual number of boxes.")
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     print(np.subtract(np.log(mass_boxes), ln_boxes_spearman_theory))
     print("Difference between Pearson's approximation and actual ln number of boxes.")
     print(np.subtract(np.log(mass_boxes), ln_boxes_pearson_theory))
-    with open('boxes2.csv', mode='w') as employee_file:
+    with open('boxes22.csv', mode='w') as employee_file:
         employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         employee_writer.writerow(["Difference between Spearman's approximation and actual number of boxes."])

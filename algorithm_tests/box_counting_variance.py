@@ -41,39 +41,39 @@ def create_data_sets(func, graph, iterations):
 
 
 if __name__ == "__main__":
-    # E_Coli_graph = graph_magic.get_graph_from_file(
-    #     "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Escherichia_coli_K12_MG1655-3.5.165.tab2.txt")
-    # iterations = 10000
-    # box_burning = create_data_sets(fd.compact_box_burning, E_Coli_graph, iterations)
-    # excluded_mass = create_data_sets(fd.maximum_excluded_mass_burning, E_Coli_graph, iterations)
-    # size_of_boxes = len(fd.compact_box_burning(E_Coli_graph)) - 2
-    # total_burning = [0]*size_of_boxes
-    # total_mass = [0]*size_of_boxes
-    # total_burning_squared = [0]*size_of_boxes
-    # total_mass_squared = [0]*size_of_boxes
-    # for i in range(0, len(box_burning[0])):
-    #     total_burning[i % size_of_boxes] += box_burning[0][i % size_of_boxes]
-    #     total_mass[i % size_of_boxes] += excluded_mass[0][i % size_of_boxes]
-    #     total_burning_squared[i % size_of_boxes] += pow(box_burning[0][i % size_of_boxes], 2)
-    #     total_mass_squared[i % size_of_boxes] += pow(excluded_mass[0][i % size_of_boxes], 2)
-    #
-    # for i in range(0, size_of_boxes):
-    #     total_mass[i] = total_mass[i]/iterations
-    #     total_burning[i] = total_burning[i]/iterations
-    #     total_mass_squared[i] = total_mass_squared[i]/iterations
-    #     total_burning_squared[i] = total_burning_squared[i]/iterations
-    #
-    # for i in range(0, size_of_boxes):
-    #     total_burning_squared[i] = total_burning_squared[i] - pow(total_burning[i], 2)
-    #     total_mass_squared[i] = total_mass_squared[i] - pow(total_mass[i], 2)
-    #
-    # save_data = pd.DataFrame(data={"Mean Box Numbers Burning Box": total_burning, "Mean Box Excluded Mass": total_mass,
-    #                                "Variance Box Numbers Burning Box": total_burning_squared, "Variance Box Numbers Excluded Mass": total_mass_squared})
-    # print(save_data)
-    # save_data.to_csv("Al_data.csv", sep='\t')
-    # data = pd.DataFrame(data={"Number of Boxes": box_burning[0], "Length of Boxes": box_burning[1]})
-    # sb.violinplot(y="Number of Boxes", x="Length of Boxes", data=data)
-    # plt.savefig("../graphs/Box_Burning_Violin_plot.png")
+    E_Coli_graph = graph_magic.get_graph_from_file(
+        "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Escherichia_coli_K12_MG1655-3.5.165.tab2.txt")
+    iterations = 10000
+    box_burning = create_data_sets(fd.compact_box_burning, E_Coli_graph, iterations)
+    excluded_mass = create_data_sets(fd.maximum_excluded_mass_burning, E_Coli_graph, iterations)
+    size_of_boxes = len(fd.compact_box_burning(E_Coli_graph)) - 2
+    total_burning = [0]*size_of_boxes
+    total_mass = [0]*size_of_boxes
+    total_burning_squared = [0]*size_of_boxes
+    total_mass_squared = [0]*size_of_boxes
+    for i in range(0, len(box_burning[0])):
+        total_burning[i % size_of_boxes] += box_burning[0][i % size_of_boxes]
+        total_mass[i % size_of_boxes] += excluded_mass[0][i % size_of_boxes]
+        total_burning_squared[i % size_of_boxes] += pow(box_burning[0][i % size_of_boxes], 2)
+        total_mass_squared[i % size_of_boxes] += pow(excluded_mass[0][i % size_of_boxes], 2)
+
+    for i in range(0, size_of_boxes):
+        total_mass[i] = total_mass[i]/iterations
+        total_burning[i] = total_burning[i]/iterations
+        total_mass_squared[i] = total_mass_squared[i]/iterations
+        total_burning_squared[i] = total_burning_squared[i]/iterations
+
+    for i in range(0, size_of_boxes):
+        total_burning_squared[i] = total_burning_squared[i] - pow(total_burning[i], 2)
+        total_mass_squared[i] = total_mass_squared[i] - pow(total_mass[i], 2)
+
+    save_data = pd.DataFrame(data={"Mean Box Numbers Burning Box": total_burning, "Mean Box Excluded Mass": total_mass,
+                                   "Variance Box Numbers Burning Box": total_burning_squared, "Variance Box Numbers Excluded Mass": total_mass_squared})
+    print(save_data)
+    save_data.to_csv("Al_data.csv", sep='\t')
+    data = pd.DataFrame(data={"Number of Boxes": box_burning[0], "Length of Boxes": box_burning[1]})
+    sb.violinplot(y="Number of Boxes", x="Length of Boxes", data=data)
+    plt.savefig("../graphs/Box_Burning_Violin_plot.png")
     #
     # data = pd.DataFrame(data={"Number of Boxes": excluded_mass[0], "Length of Boxes": excluded_mass[1]})
     # sb.violinplot(y="Number of Boxes", x="Length of Boxes", data=data)
