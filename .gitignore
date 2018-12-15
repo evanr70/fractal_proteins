@@ -6,3 +6,10 @@ graphs/*
 
 # Ignore data in algorithm tests folder
 algorithm_tests/Al_data.csv
+
+# Ignore jlogs
+jlogs/*
+jlogs2/*
+
+# Ignoring pycharm configuration Directory
+__pycharm__/*

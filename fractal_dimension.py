@@ -17,6 +17,7 @@ import graph_magic
 # These are the set of functions which implement the Compact Box Burning algorithm.
 
 def compact_box_burning(input_graph):
+    print("Compact Box Burning Started")
     sub_graphs = list(nx.connected_component_subgraphs(input_graph))
     total_boxes = []
 
@@ -156,8 +157,8 @@ def calculate_fractal_dimension_spearman(ln_box_number, max_length):
     return -gradient
 
 
-def calculate_fractal_dimension(ln_box_number, max_length):
-    return -np.polyfit(np.log(np.arange(1, max_length + 1)), ln_box_number, deg=1)[0]
+def calculate_fractal_dimension(ln_box_number):
+    return -np.polyfit(np.log(np.arange(1, len(ln_box_number) + 1)), ln_box_number, deg=1)[0]
 
 # --------------------------------------------------------------------------------------------------
 # Putting it all together
@@ -169,42 +170,50 @@ def calculate_fractal_dim_for_graph(input_graph):
 if __name__ == "__main__":
     # H = nx.barabasi_albert_graph(50, 20)
 
-    file_list = glob.glob('data/*.txt')
-
-    file_list.sort(key=lambda x: os.path.getsize(x))
-
-    with open("analysis/frac_time_by_size.dat", 'w+') as f:
-        print("#filename\tn\tm\tnm\tt1\tt2\ttt", file=f)
-
-    for file_name in file_list:
-        print(file_name)
-
-        H = graph_magic.get_graph_from_file(file_name)
-        root_name = file_name[5:]
-
-        # plt.subplot(111)
-        # nx.draw(H, with_labels=False, font_weight='bold')
-        # plt.show()
-
-        start_time = time.time()
-
-        memb = maximum_excluded_mass_burning(H)
-
-        mid_time = time.time() - start_time
-
-        fd = calculate_fractal_dim_for_graph(H)
-
-        end_time = time.time() - mid_time
-
-        total_time = time.time() - start_time
-
-        results = map(str,
-                      [file_name, H.number_of_nodes(), H.number_of_edges(), H.number_of_edges() * H.number_of_nodes(),
-                       mid_time, end_time, total_time])
-
-        with open("analysis/frac_time_by_size.dat", 'a') as f:
-            print("\t".join(results), file=f)
-
+    # file_list = glob.glob('data/*.txt')
+    #
+    # file_list.sort(key=lambda x: os.path.getsize(x))
+    #
+    # with open("analysis/frac_time_by_size.dat", 'w+') as f:
+    #     print("#filename\tn\tm\tnm\tt1\tt2\ttt", file=f)
+    #
+    # for file_name in file_list:
+    #     print(file_name)
+    #
+    #     H = graph_magic.get_graph_from_file(file_name)
+    #     root_name = file_name[5:]
+    #
+    #     # plt.subplot(111)
+    #     # nx.draw(H, with_labels=False, font_weight='bold')
+    #     # plt.show()
+    #
+    #     start_time = time.time()
+    #
+    #     memb = maximum_excluded_mass_burning(H)
+    #
+    #     mid_time = time.time() - start_time
+    #
+    #     fd = calculate_fractal_dim_for_graph(H)
+    #
+    #     end_time = time.time() - mid_time
+    #
+    #     total_time = time.time() - start_time
+    #
+    #     results = map(str,
+    #                   [file_name, H.number_of_nodes(), H.number_of_edges(), H.number_of_edges() * H.number_of_nodes(),
+    #                    mid_time, end_time, total_time])
+    #
+    #     with open("analysis/frac_time_by_size.dat", 'a') as f:
+    #         print("\t".join(results), file=f)
+    graph = graph_magic.get_graph_from_file(
+        "../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt")
+    node_number = nx.number_of_nodes(graph)
+    print(node_number)
+    sub_graphs = list(nx.connected_component_subgraphs(graph))
+    print(len(sub_graphs))
+    plt.subplot(121)
+    nx.draw(graph, with_labels=True, font_weight='bold')
+    plt.show()
 
     # node_number = 16
     # iteration_number = 20
