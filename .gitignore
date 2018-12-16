@@ -1,5 +1,6 @@
 # Ignoring the PyCharm setup folder
 .idea/*
+graph-sketch-fractality/.idea/*
 
 # Ignoring pycharm configuration Directory
 __pycharm__/*
