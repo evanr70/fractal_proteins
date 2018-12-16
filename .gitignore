@@ -1,15 +1,18 @@
 # Ignoring the PyCharm setup folder
 .idea/*
+graph-sketch-fractality/.idea/*
 
-# Ignore the outputs in graphs folder
-graphs/*
+# Ignoring pycharm configuration Directory
+__pycharm__/*
 
 # Ignore data in algorithm tests folder
 algorithm_tests/Al_data.csv
 
-# Ignore jlogs
-jlogs/*
-jlogs2/*
+# Ignore network files
+data/*
 
-# Ignoring pycharm configuration Directory
-__pycharm__/*
+# Ignore the outputs in graphs folder
+graphs/*
+
+# Ignoring raw output data
+output_data/*

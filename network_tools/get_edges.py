@@ -12,13 +12,13 @@ for file_name in file_list:
 
     node_dict = {}
 
-    with open("node_ints/{}node_dict".format(root_name), "w+") as f:
+    with open("../node_ints/{}node_dict".format(root_name), "w+") as f:
         for i, node in enumerate(G.nodes):
             node_dict[node] = i
             print("{}\t{}".format(node, i), file=f)
 
     G = nx.relabel_nodes(G, node_dict)
 
-    with open("edges/{}tsv".format(root_name), "w+") as f:
+    with open("../edges/{}tsv".format(root_name), "w+") as f:
         for edge in G.edges:
             print("\t".join(map(str, edge)), file=f)
