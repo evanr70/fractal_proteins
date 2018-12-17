@@ -3,7 +3,7 @@
 using namespace std;
 using namespace agl::box_cover_internal;
 
-DEFINE_int32(rad_min, 1, "minimum radius");
+DEFINE_int32(rad_min, 0, "minimum radius");
 DEFINE_int32(rad_max, 100000000, "maximum radius");
 DEFINE_string(method, "sketch", "using method");
 DEFINE_double(least_coverage, 1.0, "coverage");
@@ -66,6 +66,7 @@ vector<unweighted_edge_list>  extract_maximal_connected(const G& g_pre) {
   {
       if(i != max_g)
       {
+          es.clear();
           vector<V>& max_c = connected_sets[i];
           vector<V> inv(num_v, -1);
 
@@ -84,20 +85,6 @@ vector<unweighted_edge_list>  extract_maximal_connected(const G& g_pre) {
   }
 
   return connected_edges_list;
-}
-
-
-template <typename T>
-std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
-{
-  assert(a.size() == b.size());
-
-  std::vector<T> result;
-  result.reserve(a.size());
-
-  std::transform(a.begin(), a.end(), b.begin(),
-                 std::back_inserter(result), std::plus<T>());
-  return result;
 }
 
 
@@ -126,6 +113,7 @@ int main(int argc, char** argv) {
   JLOG_ADD_OPEN("graph_info") {
     JLOG_PUT("vertices", g_pre.num_vertices());
     JLOG_PUT("edges", g_pre.num_edges());
+    JLOG_PUT("connected_components", es.size());
     string gstr = FLAGS_graph;
     str_replace(gstr, " ", "-");
     JLOG_PUT("graph", gstr);
@@ -187,21 +175,32 @@ int main(int argc, char** argv) {
   } else if (FLAGS_method == "memb") {
     JLOG_PUT("name", "MEMB");
     for (W rad : rads) {
-      int total_boxes = 0;
       vector<V> res;
-      for(unweighted_edge_list edge_list: es)
+      int total_boxes = 0;
+      if(rad == 0)
       {
-        G g(edge_list);
-        res = box_cover_memb(g, rad);
-        total_boxes += res.size();
+        total_boxes = g_pre.num_vertices();
+        JLOG_ADD_BENCHMARK("time");
+        JLOG_ADD("size", total_boxes);
+        JLOG_ADD("radius", rad);
+        coverage_manager cm(g, rad, FLAGS_least_coverage);
+        JLOG_ADD("coverage", 1);
       }
-      JLOG_ADD_BENCHMARK("time");
-      JLOG_ADD("size", total_boxes);
-      JLOG_ADD("radius", rad);
-      coverage_manager cm(g, rad, FLAGS_least_coverage);
-      for (auto& v : res) cm.add(g, v);
-      JLOG_ADD("coverage", cm.get_current_coverage());
-      if (res.size() == 1) break;
+      else
+      {
+        JLOG_ADD_BENCHMARK("time") for(unweighted_edge_list edge_list: es)
+        {
+          G g(edge_list);
+          res = box_cover_memb(g, rad);
+          total_boxes += res.size();
+        }
+        JLOG_ADD("size", total_boxes);
+        JLOG_ADD("radius", rad);
+        coverage_manager cm(g, rad, FLAGS_least_coverage);
+        for (auto& v : res) cm.add(g, v);
+        JLOG_ADD("coverage", cm.get_current_coverage());
+      }
+      if (total_boxes == es.size()) break;
     }
   } else if (FLAGS_method == "cbb") {
     JLOG_PUT("name", "CBB");
