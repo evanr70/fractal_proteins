@@ -291,12 +291,12 @@ class jlog {
       std::ostringstream os;
       std::string linkname = FLAGS_jlog_out + "/" + std::string(program_name_);
 
-      if (0 != system(("rm -rf " + linkname).c_str())) {
+      /* if (0 != system(("rm -rf " + linkname).c_str())) {
         perror("rm");
       }
       if (0 != symlink(filename_.c_str(), linkname.c_str())) {
         perror("symlink");
-      }
+      }*/
     }
   }
 

@@ -12,7 +12,7 @@ DEFINE_int32(sketch_k, 128, "sketch k");
 DEFINE_bool(rad_analytical, false, "Using analytical diameters for rads");
 DEFINE_double(alpha, 1.0, "index size limit to use MEMB (alpha*n*k)");
 
-unweighted_edge_list extract_maximal_connected(const G& g_pre) {
+vector<unweighted_edge_list> extract_maximal_connected(const G& g_pre) {
   unweighted_edge_list es;
   V num_v = g_pre.num_vertices();
   size_t max_num_v = 0;
@@ -40,9 +40,11 @@ unweighted_edge_list extract_maximal_connected(const G& g_pre) {
     if (max_num_v < connected_v.size()) {
       max_num_v = connected_v.size();
       max_g = connected_sets.size();
-      sort(connected_v.begin(), connected_v.end());
-      connected_sets.push_back(connected_v);
+      // sort(connected_v.begin(), connected_v.end());
+      // connected_sets.push_back(connected_v);
     }
+    sort(connected_v.begin(), connected_v.end());
+    connected_sets.push_back(connected_v);
   }
 
   vector<V>& max_c = connected_sets[max_g];
@@ -57,7 +59,31 @@ unweighted_edge_list extract_maximal_connected(const G& g_pre) {
     if (inv[from] == -1) continue;
     es.emplace_back(inv[from], inv[to]);
   }
-  return es;
+
+  vector<unweighted_edge_list> connected_edges_list;
+  connected_edges_list.push_back(es);
+  for(int i = 0; i < connected_sets.size(); i++)
+  {
+      if(i != max_g)
+      {
+          vector<V>& max_c = connected_sets[i];
+          vector<V> inv(num_v, -1);
+
+          for (V v : max_c) {
+              inv[v] = (lower_bound(max_c.begin(), max_c.end(), v) - max_c.begin());
+          }
+
+          for (pair<V, V>& e : g_pre.edge_list()) {
+              V from = e.first;
+              V to = e.second;
+              if (inv[from] == -1) continue;
+              es.emplace_back(inv[from], inv[to]);
+          }
+          connected_edges_list.push_back(es);
+      }
+  }
+
+  return connected_edges_list;
 }
 
 int main(int argc, char** argv) {
@@ -76,7 +102,7 @@ int main(int argc, char** argv) {
     CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
     es = extract_maximal_connected(g_pre);
   }
-  G g(es);
+  G g(es[0]);
 
   // Output information of graph
   pretty_print(g);

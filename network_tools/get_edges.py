@@ -3,12 +3,12 @@ import graph_magic
 
 import glob
 
-file_list = glob.glob('data/*.txt')
+file_list = glob.glob('../data/*.txt')
 
 for file_name in file_list:
     root_name = file_name[5:-3]
 
-    G = graph_magic.get_graph_from_file(file_name, largest_only=True)
+    G = graph_magic.get_graph_from_file(file_name, largest_only=False)
 
     node_dict = {}
 
