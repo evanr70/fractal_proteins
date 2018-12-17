@@ -2,8 +2,16 @@
 .idea/*
 graph-sketch-fractality/.idea/*
 
+# Ignoring graph-sketch-fractality configuration files
+graph-sketch-fractality/.lock-waf_darwin_build
+graph-sketch-fractality/.unittest-gtest/*
+graph-sketch-fractality/bin/*
+
 # Ignoring pycharm configuration Directory
 __pycharm__/*
+
+# Ignoring pycache files
+*/__pycache__/*
 
 # Ignore data in algorithm tests folder
 algorithm_tests/Al_data.csv
@@ -11,8 +19,20 @@ algorithm_tests/Al_data.csv
 # Ignore network files
 data/*
 
+# Ignoring edges
+edges/*
+
 # Ignore the outputs in graphs folder
 graphs/*
 
+# Ignoring node_ints files used to generate the edge list
+node_ints/*
+
 # Ignoring raw output data
 output_data/*
+
+# Ignoring graph-sketch-fractality unit tests
+graph-sketch-fractality/unittest_gtest.pyc
+
+# Ignoring waf files
+graph-sketch-fractality/.waf*
