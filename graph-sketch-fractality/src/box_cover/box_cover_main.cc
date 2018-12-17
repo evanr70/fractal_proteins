@@ -12,7 +12,7 @@ DEFINE_int32(sketch_k, 128, "sketch k");
 DEFINE_bool(rad_analytical, false, "Using analytical diameters for rads");
 DEFINE_double(alpha, 1.0, "index size limit to use MEMB (alpha*n*k)");
 
-vector<unweighted_edge_list> extract_maximal_connected(const G& g_pre) {
+vector<unweighted_edge_list>  extract_maximal_connected(const G& g_pre) {
   unweighted_edge_list es;
   V num_v = g_pre.num_vertices();
   size_t max_num_v = 0;
@@ -86,6 +86,21 @@ vector<unweighted_edge_list> extract_maximal_connected(const G& g_pre) {
   return connected_edges_list;
 }
 
+
+template <typename T>
+std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
+{
+  assert(a.size() == b.size());
+
+  std::vector<T> result;
+  result.reserve(a.size());
+
+  std::transform(a.begin(), a.end(), b.begin(),
+                 std::back_inserter(result), std::plus<T>());
+  return result;
+}
+
+
 int main(int argc, char** argv) {
   auto str_replace = [](string& str, const string& from, const string& to) {
     string::size_type pos = 0;
@@ -96,19 +111,21 @@ int main(int argc, char** argv) {
   };
 
   // Extract maximal connected subgraph & Compress coordinates
-  unweighted_edge_list es;
+  /*unweighted_edge_list es;
   {
     G g_pre = easy_cui_init(argc, argv);
     CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
     es = extract_maximal_connected(g_pre);
-  }
+  }*/
+  G g_pre = easy_cui_init(argc, argv);
+  vector<unweighted_edge_list> es = extract_maximal_connected(g_pre);
   G g(es[0]);
 
   // Output information of graph
   pretty_print(g);
   JLOG_ADD_OPEN("graph_info") {
-    JLOG_PUT("vertices", g.num_vertices());
-    JLOG_PUT("edges", g.num_edges());
+    JLOG_PUT("vertices", g_pre.num_vertices());
+    JLOG_PUT("edges", g_pre.num_edges());
     string gstr = FLAGS_graph;
     str_replace(gstr, " ", "-");
     JLOG_PUT("graph", gstr);
@@ -170,9 +187,16 @@ int main(int argc, char** argv) {
   } else if (FLAGS_method == "memb") {
     JLOG_PUT("name", "MEMB");
     for (W rad : rads) {
+      int total_boxes = 0;
       vector<V> res;
-      JLOG_ADD_BENCHMARK("time") res = box_cover_memb(g, rad);
-      JLOG_ADD("size", res.size());
+      for(unweighted_edge_list edge_list: es)
+      {
+        G g(edge_list);
+        res = box_cover_memb(g, rad);
+        total_boxes += res.size();
+      }
+      JLOG_ADD_BENCHMARK("time");
+      JLOG_ADD("size", total_boxes);
       JLOG_ADD("radius", rad);
       coverage_manager cm(g, rad, FLAGS_least_coverage);
       for (auto& v : res) cm.add(g, v);
