@@ -3,9 +3,7 @@ import graph_magic
 
 import glob
 
-file_list = glob.glob('../data/*.txt')
-
-for file_name in file_list:
+def create_nodes_and_edges(file_name):
     root_name = file_name[5:-3]
 
     G = graph_magic.get_graph_from_file(file_name, largest_only=False)
