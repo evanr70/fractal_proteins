@@ -28,9 +28,6 @@ graphs/*
 # Ignoring node_ints files used to generate the edge list
 node_ints/*
 
-# Ignoring raw output data
-output_data/*
-
 # Ignoring graph-sketch-fractality unit tests
 graph-sketch-fractality/unittest_gtest.pyc
 
