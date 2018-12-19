@@ -108,7 +108,7 @@ class basic_graph {
   inline size_t num_edges() const {
     size_t n = 0;
     for (V v : vertices()) n += degree(v);
-    return n;
+    return n/2;
   }
 
   inline irange<V> vertices() const {

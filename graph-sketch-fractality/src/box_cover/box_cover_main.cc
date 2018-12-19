@@ -3,7 +3,7 @@
 using namespace std;
 using namespace agl::box_cover_internal;
 
-DEFINE_int32(rad_min, 1, "minimum radius");
+DEFINE_int32(rad_min, 0, "minimum radius");
 DEFINE_int32(rad_max, 100000000, "maximum radius");
 DEFINE_string(method, "sketch", "using method");
 DEFINE_double(least_coverage, 1.0, "coverage");
@@ -12,7 +12,7 @@ DEFINE_int32(sketch_k, 128, "sketch k");
 DEFINE_bool(rad_analytical, false, "Using analytical diameters for rads");
 DEFINE_double(alpha, 1.0, "index size limit to use MEMB (alpha*n*k)");
 
-unweighted_edge_list extract_maximal_connected(const G& g_pre) {
+vector<unweighted_edge_list>  extract_maximal_connected(const G& g_pre) {
   unweighted_edge_list es;
   V num_v = g_pre.num_vertices();
   size_t max_num_v = 0;
@@ -40,9 +40,11 @@ unweighted_edge_list extract_maximal_connected(const G& g_pre) {
     if (max_num_v < connected_v.size()) {
       max_num_v = connected_v.size();
       max_g = connected_sets.size();
-      sort(connected_v.begin(), connected_v.end());
-      connected_sets.push_back(connected_v);
+      // sort(connected_v.begin(), connected_v.end());
+      // connected_sets.push_back(connected_v);
     }
+    sort(connected_v.begin(), connected_v.end());
+    connected_sets.push_back(connected_v);
   }
 
   vector<V>& max_c = connected_sets[max_g];
@@ -57,8 +59,34 @@ unweighted_edge_list extract_maximal_connected(const G& g_pre) {
     if (inv[from] == -1) continue;
     es.emplace_back(inv[from], inv[to]);
   }
-  return es;
+
+  vector<unweighted_edge_list> connected_edges_list;
+  connected_edges_list.push_back(es);
+  for(int i = 0; i < connected_sets.size(); i++)
+  {
+      if(i != max_g)
+      {
+          es.clear();
+          vector<V>& max_c = connected_sets[i];
+          vector<V> inv(num_v, -1);
+
+          for (V v : max_c) {
+              inv[v] = (lower_bound(max_c.begin(), max_c.end(), v) - max_c.begin());
+          }
+
+          for (pair<V, V>& e : g_pre.edge_list()) {
+              V from = e.first;
+              V to = e.second;
+              if (inv[from] == -1) continue;
+              es.emplace_back(inv[from], inv[to]);
+          }
+          connected_edges_list.push_back(es);
+      }
+  }
+
+  return connected_edges_list;
 }
+
 
 int main(int argc, char** argv) {
   auto str_replace = [](string& str, const string& from, const string& to) {
@@ -70,19 +98,22 @@ int main(int argc, char** argv) {
   };
 
   // Extract maximal connected subgraph & Compress coordinates
-  unweighted_edge_list es;
+  /*unweighted_edge_list es;
   {
     G g_pre = easy_cui_init(argc, argv);
     CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
     es = extract_maximal_connected(g_pre);
-  }
-  G g(es);
+  }*/
+  G g_pre = easy_cui_init(argc, argv);
+  vector<unweighted_edge_list> es = extract_maximal_connected(g_pre);
+  G g(es[0]);
 
   // Output information of graph
   pretty_print(g);
   JLOG_ADD_OPEN("graph_info") {
-    JLOG_PUT("vertices", g.num_vertices());
-    JLOG_PUT("edges", g.num_edges());
+    JLOG_PUT("vertices", g_pre.num_vertices());
+    JLOG_PUT("edges", g_pre.num_edges());
+    JLOG_PUT("connected_components", es.size());
     string gstr = FLAGS_graph;
     str_replace(gstr, " ", "-");
     JLOG_PUT("graph", gstr);
@@ -145,13 +176,31 @@ int main(int argc, char** argv) {
     JLOG_PUT("name", "MEMB");
     for (W rad : rads) {
       vector<V> res;
-      JLOG_ADD_BENCHMARK("time") res = box_cover_memb(g, rad);
-      JLOG_ADD("size", res.size());
-      JLOG_ADD("radius", rad);
-      coverage_manager cm(g, rad, FLAGS_least_coverage);
-      for (auto& v : res) cm.add(g, v);
-      JLOG_ADD("coverage", cm.get_current_coverage());
-      if (res.size() == 1) break;
+      int total_boxes = 0;
+      if(rad == 0)
+      {
+        total_boxes = g_pre.num_vertices();
+        JLOG_ADD_BENCHMARK("time");
+        JLOG_ADD("size", total_boxes);
+        JLOG_ADD("radius", rad);
+        coverage_manager cm(g, rad, FLAGS_least_coverage);
+        JLOG_ADD("coverage", 1);
+      }
+      else
+      {
+        JLOG_ADD_BENCHMARK("time") for(unweighted_edge_list edge_list: es)
+        {
+          G g(edge_list);
+          res = box_cover_memb(g, rad);
+          total_boxes += res.size();
+        }
+        JLOG_ADD("size", total_boxes);
+        JLOG_ADD("radius", rad);
+        coverage_manager cm(g, rad, FLAGS_least_coverage);
+        for (auto& v : res) cm.add(g, v);
+        JLOG_ADD("coverage", cm.get_current_coverage());
+      }
+      if (total_boxes == es.size()) break;
     }
   } else if (FLAGS_method == "cbb") {
     JLOG_PUT("name", "CBB");
