@@ -1,24 +1,14 @@
-import numpy as np
-import networkx as nx
 import json
-import glob
-import matplotlib.pyplot as plt
-from pprint import pprint
-from collections import Counter
+import os
+
+def read_jlogs(file_path="."):
+    jlogs = os.listdir(file_path +"/jlog")
+    memb = []
+    for jlog in jlogs:
+        with open(file_path +"/jlog/" + jlog, "r") as f:
+            data = json.load(f)
+            memb.append((data["size"], data["radius"]))
+    return memb
 
 if __name__ == "__main__":
-    jlogs = glob.glob("jlogs2/*")
-    memb = []
-    cbb = []
-    for jlog in jlogs:
-        with open(jlog, "r") as f:
-            data = json.load(f)
-            for line in data['run']['args']:
-                if 'method' in line:
-                    method = line.split('=')[1]
-                    if method == "memb":
-                        memb.append(data)
-                    if method == "cbb":
-                        cbb.append(data)
-    print(memb[0])
-    print(cbb[0])
+    print(read_jlogs("../algorithm_tests"))
