@@ -9,6 +9,7 @@ def maximum_excluded_mass_burning(file_name):
                " -seed=47398"]
     FNULL = open(os.devnull, 'w')
     subprocess.call(command, stdout=FNULL, stderr=FNULL)
+    # subprocess.call(command)
 
 
 # ------------------------------------------------------------------------------------------------------------
