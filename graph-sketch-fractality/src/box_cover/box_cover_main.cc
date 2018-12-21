@@ -62,9 +62,9 @@ vector<unweighted_edge_list>  extract_maximal_connected(const G& g_pre) {
 
   vector<unweighted_edge_list> connected_edges_list;
   connected_edges_list.push_back(es);
-  for(int i = 0; i < connected_sets.size(); i++)
+  for(unsigned int i = 0; i < connected_sets.size(); i++)
   {
-      if(i != max_g)
+      if((int)i != max_g)
       {
           es.clear();
           vector<V>& max_c = connected_sets[i];
@@ -80,7 +80,10 @@ vector<unweighted_edge_list>  extract_maximal_connected(const G& g_pre) {
               if (inv[from] == -1) continue;
               es.emplace_back(inv[from], inv[to]);
           }
-          connected_edges_list.push_back(es);
+          if(es.size() > 0)
+          {
+            connected_edges_list.push_back(es);
+          }
       }
   }
 
@@ -107,13 +110,25 @@ int main(int argc, char** argv) {
   G g_pre = easy_cui_init(argc, argv);
   vector<unweighted_edge_list> es = extract_maximal_connected(g_pre);
   G g(es[0]);
+  const int number_of_nodes = g_pre.num_vertices();
 
   // Output information of graph
+
+  int total_nodes_in_connected_components = 0;
+  for(unweighted_edge_list edge_list: es)
+  {
+    G g(edge_list);
+    total_nodes_in_connected_components = total_nodes_in_connected_components + g.num_vertices();
+  }
+  const int total_number_of_disconnected_components = number_of_nodes - total_nodes_in_connected_components;
+  const int total_number_of_components = total_number_of_disconnected_components + es.size();
+
   pretty_print(g);
   JLOG_ADD_OPEN("graph_info") {
-    JLOG_PUT("vertices", g_pre.num_vertices());
+    JLOG_PUT("vertices", number_of_nodes);
     JLOG_PUT("edges", g_pre.num_edges());
     JLOG_PUT("connected_components", es.size());
+    JLOG_PUT("disconnected_components", total_number_of_disconnected_components);
     string gstr = FLAGS_graph;
     str_replace(gstr, " ", "-");
     JLOG_PUT("graph", gstr);
@@ -179,7 +194,7 @@ int main(int argc, char** argv) {
       int total_boxes = 0;
       if(rad == 0)
       {
-        total_boxes = g_pre.num_vertices();
+        total_boxes = number_of_nodes;
         JLOG_ADD_BENCHMARK("time");
         JLOG_ADD("size", total_boxes);
         JLOG_ADD("radius", rad);
@@ -194,13 +209,14 @@ int main(int argc, char** argv) {
           res = box_cover_memb(g, rad);
           total_boxes += res.size();
         }
+        total_boxes += total_number_of_disconnected_components;
         JLOG_ADD("size", total_boxes);
         JLOG_ADD("radius", rad);
         coverage_manager cm(g, rad, FLAGS_least_coverage);
         for (auto& v : res) cm.add(g, v);
         JLOG_ADD("coverage", cm.get_current_coverage());
       }
-      if (total_boxes == es.size()) break;
+      if ((unsigned int)total_boxes == total_number_of_components) break;
     }
   } else if (FLAGS_method == "cbb") {
     JLOG_PUT("name", "CBB");
