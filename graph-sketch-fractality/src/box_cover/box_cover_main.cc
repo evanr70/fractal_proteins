@@ -1,5 +1,6 @@
 #include "easy_cui.h"
 #include "box_cover.h"
+#include <regex>
 using namespace std;
 using namespace agl::box_cover_internal;
 
@@ -107,10 +108,27 @@ int main(int argc, char** argv) {
     CHECK_MSG(FLAGS_force_undirected, "undirected only!!!");
     es = extract_maximal_connected(g_pre);
   }*/
+  bool found_number = false;
+  int argc_new = 1;
+  regex e ("(-number=)(.*)");
+  int number_of_nodes = 0;
+  for(int i = 0; i < argc; i++)
+  {
+    string s (argv[i]);
+    if ( std::regex_match ( s.begin(), s.end(), e ) )
+    {
+      number_of_nodes = stoi(s.substr(8,s.size()));
+      found_number = true;
+      argv[i]  = "";
+    }
+  }
   G g_pre = easy_cui_init(argc, argv);
   vector<unweighted_edge_list> es = extract_maximal_connected(g_pre);
   G g(es[0]);
-  const int number_of_nodes = g_pre.num_vertices();
+  if(!found_number)
+  {
+    number_of_nodes = g_pre.num_vertices();
+  }
 
   // Output information of graph
 
