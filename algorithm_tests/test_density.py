@@ -10,60 +10,17 @@ import random
 import shutil
 import os
 import multiprocessing
+from functools import partial
 import pandas as pd
 
 import sys
 
 sys.path.insert(0, '../network_tools')
+sys.setrecursionlimit(10000)
 
 import fractal_dimension as fd
 import get_edges
 import read_jlogs
-
-
-def add_vectors(vec1, vec2):
-    return [a_i + b_i for a_i, b_i in itertools.zip_longest(vec1, vec2, fillvalue=0)]
-
-
-def divide(a, b):
-    return a / b
-
-
-def density(mean, number_of_nodes):
-    return 2 * mean / (number_of_nodes * (number_of_nodes - 1))
-
-
-def test_density(number_of_nodes, iterations):
-    xx = np.arange(10, int((number_of_nodes - 1) * number_of_nodes * 0.5) + 1, 10)
-    densities = list(map(density, xx, [number_of_nodes] * len(xx)))
-    fractal_dimensions = []
-    for i in range(iterations):
-        print(i)
-        graphs = list(map(nx.fast_gnp_random_graph, [number_of_nodes] * len(densities), densities))
-        boxes = list(map(fd.maximum_excluded_mass_burning, graphs))
-        log_boxes = list(map(np.log, boxes))
-        current_fractal_dimensions = list(map(fd.calculate_fractal_dimension, log_boxes))
-        fractal_dimensions = add_vectors(fractal_dimensions, current_fractal_dimensions)
-    return_variable = list(map(divide, fractal_dimensions, [iterations] * len(fractal_dimensions)))
-    return [0] + return_variable
-
-
-def gradients(fractal_dimensions, densities):
-    density_gradients = []
-    for i in range(len(densities) - 1):
-        density_gradients.append((fractal_dimensions[i + 1] - fractal_dimensions[i])
-                                 / (densities[i + 1] - densities[i]))
-    return density_gradients
-
-
-def lower_gradients(gradients, densities):
-    mean_gradients = np.mean(gradients)
-    lower_gradients = [densities]
-    for i in range(len(gradients)):
-        if math.abs(gradients[i]) < 0.1 * mean_gradients:
-            lower_gradients.append(densities[i])
-    return lower_gradients
-
 
 ###############################################################################
 # Desnity experiments
@@ -72,7 +29,7 @@ def experiment_1(node_list, number_of_iterations):
     start_time = time.time()
 
     print("Started experiment 1: \t\t\t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
-    os.makedirs("../output_data/density_experiments/" + start_of_experiment + "/boxes")
+    os.makedirs("../output_data/density_experiments/" + start_of_experiment)
     if os.path.exists("../edges"):
         shutil.rmtree("../edges")
     if os.path.exists("../node_ints"):
@@ -80,26 +37,31 @@ def experiment_1(node_list, number_of_iterations):
 
     print("Creating edges for test: \t\t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
     for node_number in node_list:
-        edges = choose_steps(node_number)
-        for edge in edges:
-            networks = generate_random_networks(node_number, edge, number_of_iterations)
-            convert_networks_to_files(networks, node_number, edge)
+        coverting_nodes_to_edges(number_of_iterations, node_number)
+    # func = partial(coverting_nodes_to_edges, number_of_iterations)
+    # with multiprocessing.Pool() as p:
+    #     p.map(func, node_list)
 
     print(
         "Finished creating edges files: \t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
     print("Starting to count the boxes: \t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
 
+    tfd_data = pd.DataFrame()
+
     running_time_stamp = start_time
     for node_number in node_list:
-        os.makedirs("../output_data/density_experiments/" + start_of_experiment + "/boxes/" + "networks_of_size_"
-                    + str(node_number))
+        os.makedirs("../output_data/density_experiments/" + start_of_experiment +"/boxes_of_length_" + str(node_number))
+        box_number_data = pd.DataFrame()
         edges = os.listdir("../edges/" + str(node_number))
         if os.path.exists("jlog"):
             shutil.rmtree("jlog")
         edges = list([int(edge) for edge in edges])
         edges.sort()
+        tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": 0,
+                                  "vertices": node_number,
+                                  "density": 0}, index=[0]))
+        indx = 1
         for edge in edges:
-            print(edge)
             if time.time() - running_time_stamp > 3600:
                 running_time_stamp = time.time()
                 print("Experiment has been running for more than " +
@@ -108,34 +70,60 @@ def experiment_1(node_list, number_of_iterations):
             networks = os.listdir("../edges/" + str(node_number) + "/" + str(edge))
             networks = list(["../edges/" + str(node_number) + "/" + str(edge) + "/" +
                              network for network in networks])
+            func = partial(fd.maximum_excluded_mass_burning, node_number)
             with multiprocessing.Pool() as p:
-                p.map(fd.maximum_excluded_mass_burning, networks)
+                p.map(func, networks)
             jlogs = os.listdir("jlog")
             if len(jlogs) < number_of_iterations:
                 print("There are fewer jlogs than expected: \t\t\t\t\t"
                       + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
-                exit(1)
+                raise Exception('too few jlogs')
             if len(jlogs) > number_of_iterations:
                 print("There are more jlogs than expected: \t\t\t\t\t"
                       + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
-                exit(1)
+                raise Exception('too many jlogs')
             current_data = read_jlogs.read_jlogs()
-
+            box_number_data = add_box_data_to_DataFrame(current_data, box_number_data, node_number, edge)
+            tfd_data = add_tfd_data_to_DataFrame(current_data, tfd_data, node_number, edge, number_of_iterations, indx)
+            indx = indx + 1
             shutil.rmtree("jlog")
+        tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": round(math.log(node_number, 2),3),
+                                                      "vertices": node_number,
+                                                      "density": 1}, index=[indx]))
+        box_number_data.to_csv("../output_data/density_experiments/"
+                               + start_of_experiment + "/boxes_of_length_" + str(node_number) + "/raw_number_of_boxes.csv",
+                               sep=",")
+
+    tfd_data.to_csv("../output_data/density_experiments/" + start_of_experiment + "/tfd_data.csv",
+                           sep=",")
 
 
 ###############################################################################
 # Functions for running the experiment
 def choose_steps(node_number):
     return list(map(generate_edges_of_specific_densities,
-                    list(map(round, list(np.arange(1, 200) * 0.005), [3] * 199)),
-                    [node_number]*199))
+                    list(map(round, list(np.arange(1, 100) * 0.01), [3] * 99)),
+                    [node_number]*99))
 
 
 def hours_running(start_time, current_time):
     return int(((current_time - start_time) - ((current_time - start_time) % 3600)) / 3600)
 
 
+def add_box_data_to_DataFrame(raw_data, data_frame, node_number, edge):
+    for x in raw_data:
+        new_data_frame = pd.DataFrame(data={"boxes": x[0], "lengths": [2*r+1 for r in x[1]], "vertices": node_number, "edges": edge})
+        data_frame = data_frame.append(new_data_frame)
+    return data_frame
+
+
+def add_tfd_data_to_DataFrame(raw_data, data_frame, node_number, edge, iterations, index):
+    total_tfd = sum(list(fd.calculate_fractal_dimension(data[0],
+                                    [2 * r + 1 for r in data[1]]) for data in raw_data))
+    new_data = pd.DataFrame(data={"tfd": total_tfd/iterations,
+                                  "vertices": node_number,
+                                  "density": round(2*edge/(node_number*(node_number - 1)), 3)}, index=[index])
+    return data_frame.append(new_data)
 
 ###############################################################################
 # Functions to set up the tests
@@ -174,32 +162,25 @@ def generate_random_networks(node_number, edges, number_of_iterations):
     return list(map(create_network_of_density, node_numbers, edge_numbers))
 
 
-def convert_networks_to_files(network_list, node_number, edge_number):
+def convert_networks_to_files(network_list):
     for network in network_list:
-        get_edges.create_nodes_and_edges_from_network(str(node_number) + "/"
-                                                      + str(edge_number) + "/" + str(time.time()), network)
+        get_edges.create_nodes_and_edges_from_network(network)
 
 
 def generate_edges_of_specific_densities(density, nodes):
     return int(round(density * nodes * (nodes - 1) / 2, 0))
 
 
+def coverting_nodes_to_edges(number_of_iterations, node_number):
+    edges = choose_steps(node_number)
+    for edge in edges:
+        networks = generate_random_networks(node_number, edge, number_of_iterations)
+        convert_networks_to_files(networks)
+
+
 if __name__ == "__main__":
-    experiment_1([50], 10)
-    # print(datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
-    # G = nx.fast_gnp_random_graph(50, 0.1)
-    # plt.subplot(111)
-    # nx.draw(G, with_labels=True, font_weight='bold')
-    #
-    # plt.show()
-    #
-    # convert_networks_to_files(list([G]), 50, nx.number_of_edges(G))
-    # G = nx.Graph()
-    # G.add_nodes_from([0,1,2,3])
-    # G.add_path([0,1,2,3])
-    # G = correct_edge_number(G, 2, 4)
-    # print(type(G))
-    # plt.subplot(111)
-    # nx.draw(G, with_labels=True, font_weight='bold')
-    #
-    # plt.show()
+    try:
+        experiment_1([50, 100, 200, 300, 500, 1000, 5000], 500)
+        os.system('shutdown -s')
+    except:
+        os.system('shutdown -s')
