@@ -4,9 +4,9 @@ import os
 
 # ------------------------------------------------------------------------------------------------------------
 # Implementation of the Maximum-Excluded-Mass-Burning Algorithm
-def maximum_excluded_mass_burning(file_name):
+def maximum_excluded_mass_burning(node_number, file_name):
     command = ["../graph-sketch-fractality/bin/box_cover", "-type=tsv", "-method=memb", "-graph=" + file_name,
-               " -seed=47398"]
+               " -seed=47398", "-number=" + str(node_number)]
     FNULL = open(os.devnull, 'w')
     subprocess.call(command, stdout=FNULL, stderr=FNULL)
     # subprocess.call(command)
@@ -15,7 +15,7 @@ def maximum_excluded_mass_burning(file_name):
 # ------------------------------------------------------------------------------------------------------------
 # This is the set of functions which are required by both algorithms.
 def calculate_fractal_dimension(box_sizes, number_of_boxes):
-    return -np.polyfit(np.log(box_sizes), np.log(number_of_boxes), deg=1)[0]
+    return -round(np.polyfit(np.log(box_sizes), np.log(number_of_boxes), deg=1)[0],3)
 
 
 if __name__ == "__main__":
