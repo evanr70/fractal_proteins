@@ -1,5 +1,6 @@
 import networkx as nx
 import graph_magic
+import time
 import os
 
 def create_nodes_and_edges_from_file(file_name, folder_path=None):
@@ -39,10 +40,11 @@ def create_nodes_and_edges_from_file(file_name, folder_path=None):
             print("\t".join(map(str, edge)), file=f)
 
 
-def create_nodes_and_edges_from_network(file_name, G):
+def create_nodes_and_edges_from_network(G, file_name=None):
+    if not file_name:
+        file_name = str(nx.number_of_nodes(G)) + "/" + str(nx.number_of_edges(G)) + "/" + str(time.time())
     dir_name_nodes = "../node_ints/" + os.path.dirname(file_name)
     dir_name_edges = "../edges/" + os.path.dirname(file_name)
-
     if not os.path.exists(dir_name_nodes):
         os.makedirs(dir_name_nodes)
 
@@ -66,4 +68,5 @@ def create_nodes_and_edges_from_network(file_name, G):
 if __name__ == "__main__":
     # create_nodes_and_edges_from_file("../data/BIOGRID-ORGANISM-Oryza_sativa_Japonica-3.5.165.tab2.txt", "bilogical_networks")
     G = nx.fast_gnp_random_graph(20, 0.5)
-    create_nodes_and_edges_from_network("test/example", G)
+    create_nodes_and_edges_from_network(G, "example")
+    create_nodes_and_edges_from_network(G)
