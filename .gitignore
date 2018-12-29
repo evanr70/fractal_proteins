@@ -2,6 +2,9 @@
 .idea/*
 graph-sketch-fractality/.idea/*
 
+# Ignore IPython checkpoints
+file_tools/.ipynb_checkpoints/*
+
 # Ignoring graph-sketch-fractality configuration files
 graph-sketch-fractality/.lock-waf_darwin_build
 graph-sketch-fractality/.unittest-gtest/*
@@ -33,3 +36,7 @@ graph-sketch-fractality/unittest_gtest.pyc
 
 # Ignoring waf files
 graph-sketch-fractality/.waf*
+
+# Ignore biogrid files
+biogrid_archive/*
+shrunk/*
