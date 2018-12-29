@@ -55,20 +55,21 @@ def save_version(version, url, save_to):
         return
 
 
-archive_url = "https://downloads.thebiogrid.org/BioGRID/Release-Archive/"
-archive_directory = "biogrid_archive/"
+if __name__ == "__main__":
+    archive_url = "https://downloads.thebiogrid.org/BioGRID/Release-Archive/"
+    archive_directory = "biogrid_archive/"
 
-page_html = get_page(archive_url)
+    page_html = get_page(archive_url)
 
-links = page_html.find_all('a', title="View Contents of this Directory")
+    links = page_html.find_all('a', title="View Contents of this Directory")
 
-link_dict = {link.text: link['href'] for link in links}
+    link_dict = {link.text: link['href'] for link in links}
 
-for key, value in sorted(link_dict.items()):
-    try:
-        save_version(key, value, save_to=archive_directory)
-    except zipfile.BadZipfile:
-        print("\tError unzipping file - try again")
-        save_version(key, value, save_to=archive_directory)
+    for key, value in sorted(link_dict.items()):
+        try:
+            save_version(key, value, save_to=archive_directory)
+        except zipfile.BadZipfile:
+            print("\tError unzipping file - try again")
+            save_version(key, value, save_to=archive_directory)
 
-print("Done!")
+    print("Done!")
