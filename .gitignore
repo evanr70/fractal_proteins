@@ -36,3 +36,6 @@ graph-sketch-fractality/unittest_gtest.pyc
 
 # Ignoring waf files
 graph-sketch-fractality/.waf*
+
+# Ignore biogrid files
+biogrid_archive/*
