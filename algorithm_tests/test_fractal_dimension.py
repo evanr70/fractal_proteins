@@ -1,29 +1,31 @@
-import fractal_dimension as fd
+import network_tools.fractal_dimension as fd
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from scipy import stats
-import graph_magic
+import network_tools.graph_magic
 import csv
 
 
 def box_theory(length, gradient, number_of_nodes):
-    return number_of_nodes*pow(length, gradient)
+    return number_of_nodes * pow(length, gradient)
+
 
 def linear_fit(length, gradient, constant):
-    return constant + gradient*length
+    return constant + gradient * length
+
 
 def fit_spearmans(mass_boxes, range):
     ln_box_number = np.log(mass_boxes)
     ln_range = np.log(range)
     gradient = stats.spearmanr(ln_range, ln_box_number)[0] * (
             np.std(ln_box_number) / np.std(ln_range))
-    constant = ln_box_number[0] - gradient*ln_range[0]
+    constant = ln_box_number[0] - gradient * ln_range[0]
     return (gradient, constant)
 
 
 if __name__ == "__main__":
-    graph = graph_magic.get_graph_from_file(
+    graph = network_tools.graph_magic.get_graph_from_file(
         "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Human_Immunodeficiency_Virus_1-3.5.165.tab2.txt")
     # graph = graph_magic.get_graph_from_file(
     #     "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Escherichia_coli_K12_MC4100_BW2952-3.5.165.tab2.txt")
@@ -38,15 +40,15 @@ if __name__ == "__main__":
     lengths = np.arange(1, max_length + 1)
     (spearman_gradient, spearman_constant) = fit_spearmans(mass_boxes, lengths)
     (pearson_gradient, pearson_constant) = np.polyfit(np.log(lengths), np.log(mass_boxes), deg=1)
-    boxes_spearman_theory = list(map(box_theory, lengths, [spearman_gradient]*max_length,
-                                 [node_number]*max_length))
+    boxes_spearman_theory = list(map(box_theory, lengths, [spearman_gradient] * max_length,
+                                     [node_number] * max_length))
     boxes_pearson_theory = list(map(box_theory,
-                                     lengths, [pearson_gradient]*max_length,
-                                [node_number]*max_length))
-    ln_boxes_spearman_theory = list(map(linear_fit, np.log(lengths), [spearman_gradient]*max_length,
-                                    [spearman_constant]*max_length))
+                                    lengths, [pearson_gradient] * max_length,
+                                    [node_number] * max_length))
+    ln_boxes_spearman_theory = list(map(linear_fit, np.log(lengths), [spearman_gradient] * max_length,
+                                        [spearman_constant] * max_length))
     ln_boxes_pearson_theory = list(map(linear_fit, np.log(lengths), [pearson_gradient] * max_length,
-                                    [pearson_constant] * max_length))
+                                       [pearson_constant] * max_length))
     plt.figure()
     plt.plot(lengths, mass_boxes, label="Actual")
     plt.plot(lengths, boxes_spearman_theory, label="Theoretical based on Spearman")
@@ -110,13 +112,13 @@ if __name__ == "__main__":
     (spearman_gradient, spearman_constant) = fit_spearmans(mass_boxes, lengths)
     (pearson_gradient, pearson_constant) = np.polyfit(np.log(lengths), np.log(mass_boxes), deg=1)
     boxes_spearman_theory = list(map(box_theory, lengths, [spearman_gradient] * max_length,
-                                 [node_number] * max_length))
+                                     [node_number] * max_length))
     boxes_pearson_theory = list(map(box_theory,
                                     lengths, [pearson_gradient] * max_length, [node_number] * max_length))
     ln_boxes_spearman_theory = list(map(linear_fit, np.log(lengths),
                                         [spearman_gradient] * max_length, [spearman_constant] * max_length))
     ln_boxes_pearson_theory = list(map(linear_fit, np.log(lengths), [pearson_gradient] * max_length,
-                                   [pearson_constant] * max_length))
+                                       [pearson_constant] * max_length))
     plt.figure()
     plt.plot(lengths, mass_boxes, label="Actual")
     plt.plot(lengths, boxes_spearman_theory, label="Theoretical based on Spearman")

@@ -1,6 +1,6 @@
-import fractal_dimension as fd
+import network_tools.fractal_dimension as fd
 import networkx as nx
-import graph_magic
+import network_tools.graph_magic
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
@@ -41,7 +41,7 @@ def create_data_sets(func, graph, iterations):
 
 
 if __name__ == "__main__":
-    E_Coli_graph = graph_magic.get_graph_from_file(
+    E_Coli_graph = network_tools.graph_magic.get_graph_from_file(
         "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Escherichia_coli_K12_MG1655-3.5.165.tab2.txt")
     iterations = 10000
     box_burning = create_data_sets(fd.compact_box_burning, E_Coli_graph, iterations)
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # sb.violinplot(y="Number of Boxes", x="Length of Boxes", data=data)
     # plt.savefig("../graphs/Excluded_Mass_Violin_plot.png")
 
-    test_graph = graph_magic.get_graph_from_file(
+    test_graph = network_tools.graph_magic.get_graph_from_file(
         "../../BIOGRID-ORGANISM-3.5.165.tab2/BIOGRID-ORGANISM-Bos_taurus-3.5.165.tab2.txt")
     print(nx.number_of_nodes(test_graph))
     current_time = time.time()

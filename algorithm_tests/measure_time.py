@@ -1,4 +1,4 @@
-import fractal_dimension as fd
+import network_tools.fractal_dimension as fd
 import matplotlib.pyplot as plt
 import numpy as np
 import time

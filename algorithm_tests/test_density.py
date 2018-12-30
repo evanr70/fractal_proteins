@@ -18,9 +18,10 @@ import sys
 sys.path.insert(0, '../network_tools')
 sys.setrecursionlimit(10000)
 
-import fractal_dimension as fd
-import get_edges
-import read_jlogs
+import network_tools.fractal_dimension as fd
+import network_tools.get_edges
+import network_tools.read_jlogs
+
 
 ###############################################################################
 # Desnity experiments
@@ -50,7 +51,8 @@ def experiment_1(node_list, number_of_iterations):
 
     running_time_stamp = start_time
     for node_number in node_list:
-        os.makedirs("../output_data/density_experiments/" + start_of_experiment +"/boxes_of_length_" + str(node_number))
+        os.makedirs(
+            "../output_data/density_experiments/" + start_of_experiment + "/boxes_of_length_" + str(node_number))
         box_number_data = pd.DataFrame()
         edges = os.listdir("../edges/" + str(node_number))
         if os.path.exists("jlog"):
@@ -58,8 +60,8 @@ def experiment_1(node_list, number_of_iterations):
         edges = list([int(edge) for edge in edges])
         edges.sort()
         tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": 0,
-                                  "vertices": node_number,
-                                  "density": 0}, index=[0]))
+                                                      "vertices": node_number,
+                                                      "density": 0}, index=[0]))
         indx = 1
         for edge in edges:
             if time.time() - running_time_stamp > 3600:
@@ -82,20 +84,21 @@ def experiment_1(node_list, number_of_iterations):
                 print("There are more jlogs than expected: \t\t\t\t\t"
                       + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
                 raise Exception('too many jlogs')
-            current_data = read_jlogs.read_jlogs()
+            current_data = network_tools.read_jlogs.read_jlogs()
             box_number_data = add_box_data_to_DataFrame(current_data, box_number_data, node_number, edge)
             tfd_data = add_tfd_data_to_DataFrame(current_data, tfd_data, node_number, edge, number_of_iterations, indx)
             indx = indx + 1
             shutil.rmtree("jlog")
-        tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": round(math.log(node_number, 2),3),
+        tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": round(math.log(node_number, 2), 3),
                                                       "vertices": node_number,
                                                       "density": 1}, index=[indx]))
         box_number_data.to_csv("../output_data/density_experiments/"
-                               + start_of_experiment + "/boxes_of_length_" + str(node_number) + "/raw_number_of_boxes.csv",
+                               + start_of_experiment + "/boxes_of_length_" + str(
+            node_number) + "/raw_number_of_boxes.csv",
                                sep=",")
 
     tfd_data.to_csv("../output_data/density_experiments/" + start_of_experiment + "/tfd_data.csv",
-                           sep=",")
+                    sep=",")
 
 
 ###############################################################################
@@ -103,7 +106,7 @@ def experiment_1(node_list, number_of_iterations):
 def choose_steps(node_number):
     return list(map(generate_edges_of_specific_densities,
                     list(map(round, list(np.arange(1, 100) * 0.01), [3] * 99)),
-                    [node_number]*99))
+                    [node_number] * 99))
 
 
 def hours_running(start_time, current_time):
@@ -112,18 +115,20 @@ def hours_running(start_time, current_time):
 
 def add_box_data_to_DataFrame(raw_data, data_frame, node_number, edge):
     for x in raw_data:
-        new_data_frame = pd.DataFrame(data={"boxes": x[0], "lengths": [2*r+1 for r in x[1]], "vertices": node_number, "edges": edge})
+        new_data_frame = pd.DataFrame(
+            data={"boxes": x[0], "lengths": [2 * r + 1 for r in x[1]], "vertices": node_number, "edges": edge})
         data_frame = data_frame.append(new_data_frame)
     return data_frame
 
 
 def add_tfd_data_to_DataFrame(raw_data, data_frame, node_number, edge, iterations, index):
     total_tfd = sum(list(fd.calculate_fractal_dimension(data[0],
-                                    [2 * r + 1 for r in data[1]]) for data in raw_data))
-    new_data = pd.DataFrame(data={"tfd": total_tfd/iterations,
+                                                        [2 * r + 1 for r in data[1]]) for data in raw_data))
+    new_data = pd.DataFrame(data={"tfd": total_tfd / iterations,
                                   "vertices": node_number,
-                                  "density": round(2*edge/(node_number*(node_number - 1)), 3)}, index=[index])
+                                  "density": round(2 * edge / (node_number * (node_number - 1)), 3)}, index=[index])
     return data_frame.append(new_data)
+
 
 ###############################################################################
 # Functions to set up the tests
@@ -164,7 +169,7 @@ def generate_random_networks(node_number, edges, number_of_iterations):
 
 def convert_networks_to_files(network_list):
     for network in network_list:
-        get_edges.create_nodes_and_edges_from_network(network)
+        network_tools.get_edges.create_nodes_and_edges_from_network(network)
 
 
 def generate_edges_of_specific_densities(density, nodes):

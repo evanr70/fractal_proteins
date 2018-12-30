@@ -1,10 +1,11 @@
 import networkx as nx
-import graph_magic
+import network_tools.graph_magic
 import time
 import os
 
+
 def create_nodes_and_edges_from_file(file_name, folder_path=None):
-    file_path= file_name.split("/")
+    file_path = file_name.split("/")
     root_name = file_path[-1]
     root_name = root_name[:(len(root_name) - 3)]
     if folder_path:
@@ -24,7 +25,7 @@ def create_nodes_and_edges_from_file(file_name, folder_path=None):
         if not os.path.exists("../edges"):
             os.makedirs("../edges")
 
-    G = graph_magic.get_graph_from_file(file_name, largest_only=False)
+    G = network_tools.graph_magic.get_graph_from_file(file_name, largest_only=False)
 
     node_dict = {}
 
