@@ -77,7 +77,7 @@ void naive_select_greedily(const G &g, const std::vector<std::vector<V>> &X, std
 //
 
 //! Song et al. 2007 (Section 3.2)
-std::vector<V> box_cover_memb(const G &g, W radius);
+int box_cover_memb(const G &g, W radius);
 
 //! Schneider et al. 2012
 std::vector<V> box_cover_burning(const G &g, W radius);

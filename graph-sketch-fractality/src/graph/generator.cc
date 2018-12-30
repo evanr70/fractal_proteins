@@ -18,11 +18,22 @@ unweighted_edge_list generate_path(V num_vertices) {
 unweighted_edge_list generate_erdos_renyi(V num_vertices, double avg_deg) {
   auto start = std::chrono::system_clock::now();
   std::time_t start_time = std::chrono::system_clock::to_time_t(start);
-  std::cout << std::ctime(&start_time) << std::endl;
+  std::cout << "Graph generation algorithm started at " << std::ctime(&start_time) << std::endl;
 
   avg_deg = min(avg_deg, static_cast<double>(max(0, num_vertices - 1)));
 
-  std::vector<bool> edge_matrix(num_vertices*num_vertices, false);
+  std::cout << "\n=================================" << std::endl;
+  std::cout << "Allocating memory for network edge matrix." << std::endl;
+  bool **edge_matrix = (bool **)malloc(sizeof(bool*)*num_vertices);
+  for(int i = 0; i < num_vertices; i++)
+  {
+    edge_matrix[i] = (bool *)malloc(sizeof(bool)*num_vertices);
+    for(int j = 0; j < num_vertices; j++)
+    {
+      edge_matrix[i][j] = false;
+    }
+  }
+  std::cout << "Finished allocating memory for network edge matrix." << std::endl;
 
   set<pair<V, V>> es;
 
@@ -31,44 +42,38 @@ unweighted_edge_list generate_erdos_renyi(V num_vertices, double avg_deg) {
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator (seed);
   std::uniform_int_distribution<V> rng(0, num_vertices - 1);
-  while (es.size() < num_vertices * avg_deg) {
+  while (es.size() < num_vertices * avg_deg/2) {
     V u = rng(generator), v = rng(generator);
     if(u == v) continue;
-    if(edge_matrix[u*num_vertices + v])
+    if(edge_matrix[u][v])
     {
       repeats_counter++;
       if(repeats_counter > num_vertices){
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         std::default_random_engine generator (seed);
+        repeats_counter = 0;
+        std::cout << "New random seed chosen " << seed << std::endl;
       }
       continue;
     }
 
     repeats_counter = 0;
-    edge_matrix[u*num_vertices + v] = true;
-    edge_matrix[v*num_vertices + u] = true;
+    edge_matrix[u][v] = true;
+    edge_matrix[v][u] = true;
     es.insert(make_pair(u, v));
   }
-  /*std::cout << "   ";
+  std::cout << "Starting to de-allocate memory for network edge matrix." << std::endl;
   for(int i = 0; i < num_vertices; i++)
   {
-    std::cout << i << ",\t";
+    free(edge_matrix[i]);
   }
-  std::cout << "\n";
-  for(int i = 0; i < num_vertices; i++)
-  {
-    std::cout << i << " |";
-    for(int j = 0; j < num_vertices; j++)
-    {
-      std::cout << edge_matrix[i][j] << ",\t";
-    }
-    std::cout << "|\n";
-  }*/
+  free(edge_matrix);
+  std::cout << "Finished de-allocating memory for network edge matrix." << std::endl;
+  std::cout << "=================================\n" << std::endl;
 
   auto end = std::chrono::system_clock::now();
   std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-  std::cout << std::ctime(&end_time) << std::endl;
-
+  std::cout << "Graph generation algorithm finished at " << std::ctime(&end_time) << std::endl;
   return vector<pair<V, V>>(es.begin(), es.end());
 };
 
@@ -223,10 +228,12 @@ unweighted_edge_list generate_shm(V required_num, V initial_num, int t, double P
 
 unweighted_edge_list make_undirected(const unweighted_edge_list& es) {
   unweighted_edge_list out(es.size() * 2);
-  for (auto i : make_irange(es.size())) {
-    V u = es[i].first, v = es[i].second;
+  int i = 0;
+  for (pair<V, V> edge : es) {
+    V u = edge.first, v = edge.second;
     out[i * 2 + 0] = make_pair(u, v);
     out[i * 2 + 1] = make_pair(v, u);
+    i++;
   }
   sort(out.begin(), out.end());
   out.erase(unique(out.begin(), out.end()), out.end());

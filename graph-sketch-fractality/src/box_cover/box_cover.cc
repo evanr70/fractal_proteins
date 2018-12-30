@@ -554,20 +554,20 @@ using namespace agl::box_cover_internal;
  * \param g is graph to cover
  * \param radius is radius of each box
  */
-vector<V> box_cover_memb(const G &g, W radius) {
+int box_cover_memb(const G &g, W radius) {
   V num_v = g.num_vertices();
-  vector<vector<pair<V, W>>> node_lists;
+  vector<vector<pair<V, W>> *> node_lists;
   map<size_t, set<V>> excluded_mass_map;
   {
     vector<pair<size_t, V>> center_candidates;
     for (V pv = 0; pv < num_v; ++pv) {
       queue<pair<V, W>> que;
-      vector<bool> vis(num_v, false);
-      vector<pair<V, W>> nodes;
+      vector<bool> *vis = new vector<bool>(num_v, false);
+      vector<pair<V, W>> *nodes = new vector<pair<V, W>>;
 
       que.push(make_pair(pv, 0));
-      nodes.push_back(make_pair(pv, 0));
-      vis[pv] = true;
+      (*nodes).push_back(make_pair(pv, 0));
+      (*vis)[pv] = true;
 
       while (!que.empty()) {
         V v = que.front().first;
@@ -575,15 +575,16 @@ vector<V> box_cover_memb(const G &g, W radius) {
         que.pop();
         if (dist >= radius) continue;
         for (const V &u : g.neighbors(v)) {
-          if (vis[u]) continue;
+          if ((*vis)[u]) continue;
           que.push(make_pair(u, dist + 1));
-          nodes.push_back(make_pair(u, dist + 1));
-          vis[u] = true;
+          (*nodes).push_back(make_pair(u, dist + 1));
+          (*vis)[u] = true;
         }
       }
 
       node_lists.push_back(nodes);
-      center_candidates.push_back(make_pair(nodes.size(), pv));
+      center_candidates.push_back(make_pair((*nodes).size(), pv));
+      delete vis;
     }
     for (const pair<size_t, V> &p : center_candidates) {
       excluded_mass_map[p.first].insert(p.second);
@@ -592,7 +593,6 @@ vector<V> box_cover_memb(const G &g, W radius) {
 
   set<V> covered_nodes;
   set<V> center_nodes;
-  vector<W> central_distance(num_v, num_v);
   while (covered_nodes.size() < (size_t)num_v) {
     V center_node_found;
     while (true) {
@@ -612,7 +612,7 @@ vector<V> box_cover_memb(const G &g, W radius) {
       }
 
       V mass = 0;
-      for (const pair<V, W> &p : node_lists[node]) {
+      for (const pair<V, W> &p : (*node_lists[node])) {
         if (covered_nodes.find(p.first) == covered_nodes.end()) {
           mass++;
         }
@@ -628,16 +628,17 @@ vector<V> box_cover_memb(const G &g, W radius) {
       }
     }
     center_nodes.insert(center_node_found);
-    for (const pair<V, W> &p : node_lists[center_node_found]) {
+    for (const pair<V, W> &p : (*node_lists[center_node_found])) {
       V i = p.first;
       W d = p.second;
       covered_nodes.insert(i);
-      central_distance[i] = max(central_distance[i], d);
     }
   }
-
-  vector<V> ret(center_nodes.begin(), center_nodes.end());
-  return ret;
+  for(vector<pair<V,W>> *nodes: node_lists)
+  {
+    delete nodes;
+  }
+  return center_nodes.size();
 }
 
 /**
