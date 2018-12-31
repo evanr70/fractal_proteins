@@ -28,19 +28,9 @@ def experiment_1(node_list, number_of_iterations):
     start_of_experiment = datetime.datetime.now().strftime("%a_%d_%b_%Y_%H:%M:%S")
     start_time = time.time()
 
-    print("Started experiment 1: \t\t\t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
-    os.makedirs("../output_data/density_experiments/" + start_of_experiment)
-    if os.path.exists("../edges"):
-        shutil.rmtree("../edges")
-    if os.path.exists("../node_ints"):
-        shutil.rmtree("../node_ints")
-
     print("Creating edges for test: \t\t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
     for node_number in node_list:
         coverting_nodes_to_edges(number_of_iterations, node_number)
-    # func = partial(coverting_nodes_to_edges, number_of_iterations)
-    # with multiprocessing.Pool() as p:
-    #     p.map(func, node_list)
 
     print(
         "Finished creating edges files: \t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
@@ -52,27 +42,29 @@ def experiment_1(node_list, number_of_iterations):
     for node_number in node_list:
         os.makedirs("../output_data/density_experiments/" + start_of_experiment +"/boxes_of_length_" + str(node_number))
         box_number_data = pd.DataFrame()
-        edges = os.listdir("../edges/" + str(node_number))
+        ave_edges = list(np.arange(1, 100) * 0.01*(node_number-1))
         if os.path.exists("jlog"):
             shutil.rmtree("jlog")
         edges = list([int(edge) for edge in edges])
-        edges.sort()
         tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": 0,
                                   "vertices": node_number,
                                   "density": 0}, index=[0]))
         indx = 1
-        for edge in edges:
+
+        for ave in ave_edges:
             if time.time() - running_time_stamp > 3600:
                 running_time_stamp = time.time()
                 print("Experiment has been running for more than " +
                       str(hours_running(start_time, running_time_stamp)) + " hours: \t\t"
                       + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
-            networks = os.listdir("../edges/" + str(node_number) + "/" + str(edge))
-            networks = list(["../edges/" + str(node_number) + "/" + str(edge) + "/" +
-                             network for network in networks])
-            func = partial(fd.maximum_excluded_mass_burning, node_number)
-            with multiprocessing.Pool() as p:
-                p.map(func, networks)
+
+            if node_number < 5000:
+                func = partial(fd.maximum_excluded_mass_burning_erdos, node_number)
+                with multiprocessing.Pool() as p:
+                    p.map(func, [ave]*number_of_iterations)
+            else:
+                func = partial(fd.maximum_excluded_mass_burning_erdos, node_number)
+                map(func, [ave]*number_of_iterations)
             jlogs = os.listdir("jlog")
             if len(jlogs) < number_of_iterations:
                 print("There are fewer jlogs than expected: \t\t\t\t\t"
@@ -83,8 +75,8 @@ def experiment_1(node_list, number_of_iterations):
                       + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
                 raise Exception('too many jlogs')
             current_data = read_jlogs.read_jlogs()
-            box_number_data = add_box_data_to_DataFrame(current_data, box_number_data, node_number, edge)
-            tfd_data = add_tfd_data_to_DataFrame(current_data, tfd_data, node_number, edge, number_of_iterations, indx)
+            box_number_data = add_box_data_to_DataFrame(current_data, box_number_data, node_number, ave*node_number/2)
+            tfd_data = add_tfd_data_to_DataFrame(current_data, tfd_data, node_number, ave/(node_number-1), number_of_iterations, indx)
             indx = indx + 1
             shutil.rmtree("jlog")
         tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": round(math.log(node_number, 2),3),
@@ -180,7 +172,7 @@ def coverting_nodes_to_edges(number_of_iterations, node_number):
 
 if __name__ == "__main__":
     try:
-        experiment_1([50, 100, 200, 300, 500, 1000, 5000], 500)
+        experiment_1([10000, 50000, 100000], 500)
         os.system('shutdown -s')
     except:
         os.system('shutdown -s')

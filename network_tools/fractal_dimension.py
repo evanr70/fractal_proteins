@@ -12,6 +12,15 @@ def maximum_excluded_mass_burning(node_number, file_name):
     # subprocess.call(command)
 
 
+def maximum_excluded_mass_burning_erdos(node_number, average_edges):
+    command = ["../graph-sketch-fractality/bin/box_cover", "-type=gen", "-method=memb", "-graph=erdos_renyi "
+               + str(node_number) + " " + str(average_edges)]
+    FNULL = open(os.devnull, 'w')
+    subprocess.call(command, stdout=FNULL, stderr=FNULL)
+    # subprocess.call(command)
+
+
+
 # ------------------------------------------------------------------------------------------------------------
 # This is the set of functions which are required by both algorithms.
 def calculate_fractal_dimension(box_sizes, number_of_boxes):
