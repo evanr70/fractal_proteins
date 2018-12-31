@@ -42,7 +42,7 @@ unweighted_edge_list generate_erdos_renyi(V num_vertices, double avg_deg) {
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator (seed);
   std::uniform_int_distribution<V> rng(0, num_vertices - 1);
-  while (es.size() < num_vertices * avg_deg) {
+  while (es.size() < num_vertices * avg_deg/2) {
     V u = rng(generator), v = rng(generator);
     if(u == v) continue;
     if(edge_matrix[u][v])
@@ -228,10 +228,12 @@ unweighted_edge_list generate_shm(V required_num, V initial_num, int t, double P
 
 unweighted_edge_list make_undirected(const unweighted_edge_list& es) {
   unweighted_edge_list out(es.size() * 2);
-  for (auto i : make_irange(es.size())) {
-    V u = es[i].first, v = es[i].second;
+  int i = 0;
+  for (pair<V, V> edge : es) {
+    V u = edge.first, v = edge.second;
     out[i * 2 + 0] = make_pair(u, v);
     out[i * 2 + 1] = make_pair(v, u);
+    i++;
   }
   sort(out.begin(), out.end());
   out.erase(unique(out.begin(), out.end()), out.end());
