@@ -28,12 +28,6 @@ def experiment_1(node_list, number_of_iterations):
     start_of_experiment = datetime.datetime.now().strftime("%a_%d_%b_%Y_%H:%M:%S")
     start_time = time.time()
 
-    print("Creating edges for test: \t\t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
-    for node_number in node_list:
-        coverting_nodes_to_edges(number_of_iterations, node_number)
-
-    print(
-        "Finished creating edges files: \t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
     print("Starting to count the boxes: \t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
 
     tfd_data = pd.DataFrame()
@@ -45,7 +39,6 @@ def experiment_1(node_list, number_of_iterations):
         ave_edges = list(np.arange(1, 100) * 0.01*(node_number-1))
         if os.path.exists("jlog"):
             shutil.rmtree("jlog")
-        edges = list([int(edge) for edge in edges])
         tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": 0,
                                   "vertices": node_number,
                                   "density": 0}, index=[0]))
@@ -57,14 +50,16 @@ def experiment_1(node_list, number_of_iterations):
                 print("Experiment has been running for more than " +
                       str(hours_running(start_time, running_time_stamp)) + " hours: \t\t"
                       + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
+                print("Currently calculating the number of boxes for a network with " + str(node_number)
+                      + "vertices and " + str(ave) + " number of average edges.")
 
-            if node_number < 5000:
+            if node_number < 5001:
                 func = partial(fd.maximum_excluded_mass_burning_erdos, node_number)
                 with multiprocessing.Pool() as p:
                     p.map(func, [ave]*number_of_iterations)
             else:
-                func = partial(fd.maximum_excluded_mass_burning_erdos, node_number)
-                map(func, [ave]*number_of_iterations)
+                for x in [ave]*number_of_iterations:
+                    fd.maximum_excluded_mass_burning_erdos(node_number, x)
             jlogs = os.listdir("jlog")
             if len(jlogs) < number_of_iterations:
                 print("There are fewer jlogs than expected: \t\t\t\t\t"
@@ -172,7 +167,9 @@ def coverting_nodes_to_edges(number_of_iterations, node_number):
 
 if __name__ == "__main__":
     try:
-        experiment_1([10000, 50000, 100000], 500)
-        os.system('shutdown -s')
+        experiment_1([5000, 10000], 50)
+        os.system('shutdown')
     except:
-        os.system('shutdown -s')
+        os.system('shutdown')
+    # experiment_1([100], 1)
+    # experiment_1([5000, 10000], 50)
