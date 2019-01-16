@@ -234,7 +234,8 @@ int main(int argc, char** argv) {
         JLOG_ADD_BENCHMARK("time") for(unweighted_edge_list edge_list: es)
         {
           G g(edge_list);
-          total_boxes += box_cover_memb(g, rad);
+          res = box_cover_memb(g, rad);
+          total_boxes += res.size();
         }
         total_boxes += total_number_of_disconnected_components;
         JLOG_ADD("size", total_boxes);
