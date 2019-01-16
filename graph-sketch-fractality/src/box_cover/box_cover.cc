@@ -554,7 +554,7 @@ using namespace agl::box_cover_internal;
  * \param g is graph to cover
  * \param radius is radius of each box
  */
-int box_cover_memb(const G &g, W radius) {
+vector<V> box_cover_memb(const G &g, W radius) {
   V num_v = g.num_vertices();
   vector<vector<pair<V, W>> *> node_lists;
   map<size_t, set<V>> excluded_mass_map;
@@ -638,7 +638,8 @@ int box_cover_memb(const G &g, W radius) {
   {
     delete nodes;
   }
-  return center_nodes.size();
+  vector<V> ret(center_nodes.begin(), center_nodes.end());
+  return ret;
 }
 
 /**
