@@ -222,6 +222,7 @@ int main(int argc, char** argv) {
     JLOG_PUT("name", "MEMB");
     for (W rad : rads) {
       int total_boxes = 0;
+      vector<V> res;
       if(rad == 0)
       {
         total_boxes = number_of_nodes;
