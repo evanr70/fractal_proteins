@@ -30,21 +30,19 @@ def experiment_1(node_list, number_of_iterations):
 
     print("Starting to count the boxes: \t\t\t\t\t\t\t" + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
 
-    tfd_data = pd.DataFrame()
-
     running_time_stamp = start_time
     for node_number in node_list:
-        os.makedirs("../output_data/density_experiments/" + start_of_experiment +"/boxes_of_length_" + str(node_number))
-        box_number_data = pd.DataFrame()
-        ave_edges = list(np.arange(1, 100) * 0.01*(node_number-1))
+        ave_edges = list(map(round, list(np.arange(1, 100) * 0.01*(node_number - 1)), [3] * 99))
         if os.path.exists("jlog"):
             shutil.rmtree("jlog")
-        tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": 0,
-                                  "vertices": node_number,
-                                  "density": 0}, index=[0]))
-        indx = 1
 
         for ave in ave_edges:
+            os.makedirs("../output_data/density_experiments/"
+                        + start_of_experiment
+                        + "/number_of_vertices_" + str(node_number)
+                        + "/number_of_edges_" + str(round(ave*node_number/2, 3)))
+            box_number_data = pd.DataFrame()
+            tfd_data = pd.DataFrame()
             if time.time() - running_time_stamp > 3600:
                 running_time_stamp = time.time()
                 print("Experiment has been running for more than " +
@@ -53,13 +51,10 @@ def experiment_1(node_list, number_of_iterations):
                 print("Currently calculating the number of boxes for a network with " + str(node_number)
                       + "vertices and " + str(ave) + " number of average edges.")
 
-            if node_number < 5001:
-                func = partial(fd.maximum_excluded_mass_burning_erdos, node_number)
-                with multiprocessing.Pool() as p:
-                    p.map(func, [ave]*number_of_iterations)
-            else:
-                for x in [ave]*number_of_iterations:
-                    fd.maximum_excluded_mass_burning_erdos(node_number, x)
+            func = partial(fd.maximum_excluded_mass_burning_erdos, node_number)
+            with multiprocessing.Pool() as p:
+                p.map(func, [ave]*number_of_iterations)
+
             jlogs = os.listdir("jlog")
             if len(jlogs) < number_of_iterations:
                 print("There are fewer jlogs than expected: \t\t\t\t\t"
@@ -70,19 +65,20 @@ def experiment_1(node_list, number_of_iterations):
                       + datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S.%f"))
                 raise Exception('too many jlogs')
             current_data = read_jlogs.read_jlogs()
-            box_number_data = add_box_data_to_DataFrame(current_data, box_number_data, node_number, ave*node_number/2)
-            tfd_data = add_tfd_data_to_DataFrame(current_data, tfd_data, node_number, ave/(node_number-1), number_of_iterations, indx)
-            indx = indx + 1
+            box_number_data = add_box_data_to_DataFrame(current_data, box_number_data, node_number, round(ave*node_number/2, 3))
+            tfd_data = add_tfd_data_to_DataFrame(current_data, tfd_data, node_number, round(ave*node_number/2, 3))
+            box_number_data.to_csv("../output_data/density_experiments/"
+                                   + start_of_experiment + "/number_of_vertices_"
+                                   + str(node_number)
+                                   + "/number_of_edges_" + str(round(ave*node_number/2, 3)) + "/raw_number_of_boxes.csv",
+                                   sep=",")
+            tfd_data.to_csv("../output_data/density_experiments/"
+                            + start_of_experiment
+                            + "/number_of_vertices_"
+                            + str(node_number)
+                            + "/number_of_edges_" + str(round(ave*node_number/2, 3)) + "/tfd_data.csv",
+                            sep=",")
             shutil.rmtree("jlog")
-        tfd_data = tfd_data.append(pd.DataFrame(data={"tfd": round(math.log(node_number, 2),3),
-                                                      "vertices": node_number,
-                                                      "density": 1}, index=[indx]))
-        box_number_data.to_csv("../output_data/density_experiments/"
-                               + start_of_experiment + "/boxes_of_length_" + str(node_number) + "/raw_number_of_boxes.csv",
-                               sep=",")
-
-    tfd_data.to_csv("../output_data/density_experiments/" + start_of_experiment + "/tfd_data.csv",
-                           sep=",")
 
 
 ###############################################################################
@@ -104,13 +100,16 @@ def add_box_data_to_DataFrame(raw_data, data_frame, node_number, edge):
     return data_frame
 
 
-def add_tfd_data_to_DataFrame(raw_data, data_frame, node_number, edge, iterations, index):
-    total_tfd = sum(list(fd.calculate_fractal_dimension(data[0],
-                                    [2 * r + 1 for r in data[1]]) for data in raw_data))
-    new_data = pd.DataFrame(data={"tfd": total_tfd/iterations,
+def add_tfd_data_to_DataFrame(raw_data, data_frame, node_number, edge):
+    tfds = list(fd.calculate_fractal_dimension([2 * r + 1 for r in data[1]], data[0]) for data in raw_data)
+    indx = 0
+    for tfd in tfds:
+        data_frame = data_frame.append(pd.DataFrame(data={"tfd": tfd,
                                   "vertices": node_number,
-                                  "density": round(2*edge/(node_number*(node_number - 1)), 3)}, index=[index])
-    return data_frame.append(new_data)
+                                  "density": round(2*edge/(node_number*(node_number - 1)), 3)},
+                          index=[indx]))
+        indx += 1
+    return data_frame
 
 ###############################################################################
 # Functions to set up the tests
@@ -166,10 +165,9 @@ def coverting_nodes_to_edges(number_of_iterations, node_number):
 
 
 if __name__ == "__main__":
-    try:
-        experiment_1([5000, 10000], 50)
-        os.system('shutdown')
-    except:
-        os.system('shutdown')
-    # experiment_1([100], 1)
-    # experiment_1([5000, 10000], 50)
+    # try:
+    #     experiment_1([100, 200], 50)
+    #     os.system('shutdown')
+    # except:
+    #     os.system('shutdown')
+    experiment_1([100, 200], 1)
