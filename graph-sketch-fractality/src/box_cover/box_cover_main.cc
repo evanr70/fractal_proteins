@@ -109,7 +109,6 @@ int main(int argc, char** argv) {
     es = extract_maximal_connected(g_pre);
   }*/
   bool found_number = false;
-  int argc_new = 1;
   regex e ("(-number=)(.*)");
   int number_of_nodes = 0;
   for(int i = 0; i < argc; i++)
@@ -192,32 +191,44 @@ int main(int argc, char** argv) {
     JLOG_PUT("alpha", to_string(FLAGS_alpha));
 
     for (W rad : rads) {
-      vector<V> res;
-      coverage_manager cm(g, rad, FLAGS_least_coverage);
-      JLOG_ADD_BENCHMARK("time")
-      res = box_cover_sketch(g, rad, FLAGS_sketch_k, FLAGS_multipass, cm,
-                             FLAGS_alpha);
-      JLOG_ADD("size", res.size());
-      JLOG_ADD("radius", rad);
-      JLOG_ADD("coverage", cm.get_current_coverage());
-      JLOG_ADD_OPEN("centers") {
-        for (const auto& b : res) JLOG_ADD(to_string(rad).data(), b);
-      }
-      if (res.size() == 1) break;
-    }
-  } else if (FLAGS_method == "memb") {
-    JLOG_PUT("name", "MEMB");
-    for (W rad : rads) {
-      vector<V> res;
       int total_boxes = 0;
+      vector<V> res;
       if(rad == 0)
       {
         total_boxes = number_of_nodes;
         JLOG_ADD_BENCHMARK("time");
         JLOG_ADD("size", total_boxes);
         JLOG_ADD("radius", rad);
-        coverage_manager cm(g, rad, FLAGS_least_coverage);
-        JLOG_ADD("coverage", 1);
+      }
+      else{
+        JLOG_ADD_BENCHMARK("time") for(unweighted_edge_list edge_list: es)
+        {
+          G g(edge_list);
+          coverage_manager cm(g, rad, FLAGS_least_coverage);
+          JLOG_ADD_BENCHMARK("time")
+          res = box_cover_sketch(g, rad, FLAGS_sketch_k, FLAGS_multipass, cm,
+                                 FLAGS_alpha);
+          total_boxes += res.size();
+        }
+        JLOG_ADD("size", res.size());
+        JLOG_ADD("radius", rad);
+        JLOG_ADD_OPEN("centers") {
+          for (const auto& b : res) JLOG_ADD(to_string(rad).data(), b);
+        }
+      }
+      if ((signed int)total_boxes == total_number_of_components) break;
+    }
+  } else if (FLAGS_method == "memb") {
+    JLOG_PUT("name", "MEMB");
+    for (W rad : rads) {
+      int total_boxes = 0;
+      vector<V> res;
+      if(rad == 0)
+      {
+        total_boxes = number_of_nodes;
+        JLOG_ADD_BENCHMARK("time");
+        JLOG_ADD("size", total_boxes);
+        JLOG_ADD("radius", rad);
       }
       else
       {
@@ -230,23 +241,32 @@ int main(int argc, char** argv) {
         total_boxes += total_number_of_disconnected_components;
         JLOG_ADD("size", total_boxes);
         JLOG_ADD("radius", rad);
-        coverage_manager cm(g, rad, FLAGS_least_coverage);
-        for (auto& v : res) cm.add(g, v);
-        JLOG_ADD("coverage", cm.get_current_coverage());
       }
-      if ((unsigned int)total_boxes == total_number_of_components) break;
+      if ((signed int)total_boxes == total_number_of_components) break;
     }
   } else if (FLAGS_method == "cbb") {
     JLOG_PUT("name", "CBB");
     for (W rad : rads) {
-      vector<V> res;
-      JLOG_ADD_BENCHMARK("time") res = box_cover_cbb(g, rad * 2);
-      JLOG_ADD("size", res.size());
-      JLOG_ADD("radius", rad);
-      coverage_manager cm(g, rad, FLAGS_least_coverage);
-      for (auto& v : res) cm.add(g, v);
-      JLOG_ADD("coverage", cm.get_current_coverage());
-      if (res.size() == 1) break;
+      int total_boxes = 0;
+      if(rad == 0)
+      {
+        total_boxes = number_of_nodes;
+        JLOG_ADD_BENCHMARK("time");
+        JLOG_ADD("size", total_boxes);
+        JLOG_ADD("radius", 1);
+      }
+      else
+      {
+        JLOG_ADD_BENCHMARK("time") for(unweighted_edge_list edge_list: es)
+        {
+          G g(edge_list);
+          total_boxes += box_cover_cbb(g, rad).size();
+        }
+        total_boxes += total_number_of_disconnected_components;
+        JLOG_ADD("size", total_boxes);
+        JLOG_ADD("radius", rad);
+      }
+      if ((signed int)total_boxes == total_number_of_components) break;
     }
   } else if (FLAGS_method == "coloring") {
     JLOG_PUT("name", "Coloring");

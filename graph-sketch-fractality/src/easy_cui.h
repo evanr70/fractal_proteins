@@ -100,9 +100,15 @@ GraphType easy_cui_init(int argc, char **argv) {
     }
   }
 
-  if (FLAGS_force_undirected) es = make_undirected(es);
-
-  GraphType g(es);
-  pretty_print(g);
-  return g;
+  if (FLAGS_force_undirected){
+    GraphType g(make_undirected(es));
+    pretty_print(g);
+    return g;
+  }
+  else
+  {
+      GraphType g(es);
+      pretty_print(g);
+      return g;
+  }
 }
